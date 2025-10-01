@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45339a2c4a2ab064783d4b3fe33cd694, type: 3}
   m_Name: Gen - Door Brick Arch
   m_EditorClassIdentifier: Assembly-CSharp::Johnny.SimDungeon.BuildableGen
-  buildableObjectSO: {fileID: 11400000, guid: fae44909dbd67a74981c94ba9ce9e9c0, type: 2}
-  buildCategory: 3
-  gridType: 3
+  buildableObjectSO: {fileID: 11400000, guid: d3b0b3aa66cfc7041a8c6d8268802c55, type: 2}
+  buildCategory: 2
+  gridType: 2
   description: Just SingleBed
