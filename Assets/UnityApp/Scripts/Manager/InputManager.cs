@@ -1,5 +1,6 @@
 using SoulGames.EasyGridBuilderPro;
 using System;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
@@ -92,12 +93,17 @@ namespace Johnny.SimDungeon
 
         private void Update()
         {
+
             if (isPlacing)
             {
 
             }
             else
             {
+                Debug.Log(EventSystem.current.IsPointerOverGameObject());
+                Debug.Log(EventSystem.current.currentSelectedGameObject);
+                Debug.Log(EventSystem.current.firstSelectedGameObject);
+                Debug.Log(EventSystem.current.lastSelectedGameObject);
                 if (!EventSystem.current.IsPointerOverGameObject())
                 {
                     HandleHover();
@@ -173,11 +179,13 @@ namespace Johnny.SimDungeon
 
         private void HandleClick()
         {
-            var mouse = Mouse.current;
+            var mouse = Mouse.current; Debug.Log(mouse);
             if (mouse == null) return;
-
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+                Debug.Log("鼠标左键点下");
             if (mouse.leftButton.wasPressedThisFrame)
             {
+                Debug.Log(111);
                 // 如果有旧的选中对象，取消高亮
                 if (m_SelectionViewModel.SelectEntity != null && m_SelectionViewModel.SelectEntity != m_SelectionViewModel.HoverEntity)
                 {
