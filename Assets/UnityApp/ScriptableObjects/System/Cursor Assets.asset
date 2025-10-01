@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c98391b917972fa409fc850149285658, type: 3}
+  m_Name: Cursor Assets
+  m_EditorClassIdentifier: Assembly-CSharp::Johnny.SimDungeon.CursorAssets
+  cursorAssets:
+  - cursorMode: 0
+    texture: {fileID: 2800000, guid: 60488f5fb1f37df4cabf9656ebcefeaf, type: 3}
+    hotspot: {x: 0, y: 0}
+  - cursorMode: 20
+    texture: {fileID: 2800000, guid: 60488f5fb1f37df4cabf9656ebcefeaf, type: 3}
+    hotspot: {x: 0, y: 0}
+  - cursorMode: 21
+    texture: {fileID: 2800000, guid: 86a38b6ddd42b4b4b99db8d3a81966f5, type: 3}
+    hotspot: {x: 0, y: 0}
