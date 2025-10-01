@@ -1,5 +1,6 @@
 using DungeonArchitect.UI;
 using Johnny.SimDungeon;
+using Loxodon.Framework.Contexts;
 using System;
 using System.Collections.Generic;
 using Unity.Loading;
@@ -28,6 +29,13 @@ namespace Johnny.SimDungeon
         public bool WorldInited;
         // 公开属性，用于查询当前模式
         public GameState CurrentMode => currentState.StateID;
+
+        private void Awake()
+        {
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
+        }
+
 
         /// <summary>
         /// 实例化并注册所有游戏模式状态
@@ -74,7 +82,7 @@ namespace Johnny.SimDungeon
 
                 // 可选：在此处触发事件通知外部模块（例如 UI 刷新）
                 // OnGameModeChanged?.Invoke(newMode); 
-
+                m_MainGameViewModel.GameState = newMode;
                 Debug.Log($"<GameMode Switched> - {currentState.StateID.SetColor(Color.yellowGreen)}");
             }
             else

@@ -16,10 +16,6 @@ namespace Johnny.SimDungeon
         {
         }
 
-        protected override void OnSelect()
-        {
-            Debug.Log(11);
-        }
 
     }
 
@@ -32,9 +28,9 @@ namespace Johnny.SimDungeon
             base.Start();
         }
 
-        protected override void Binding(BindingSet<ViewBase<DestroyToolViewModel>, DestroyToolViewModel> bindingSet)
-        {
-            base.Binding(bindingSet);
-        }
+        //protected override void Binding(BindingSet<ViewBase<DestroyToolViewModel>, DestroyToolViewModel> bindingSet)
+        //{
+        //    base.Binding(bindingSet);
+        //}
     }
 }

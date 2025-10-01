@@ -46,12 +46,11 @@ namespace Johnny.SimDungeon
     {
         [SerializeField] private Image m_Icon;
         [SerializeField] private TooltipContent m_TooltipContent;
-        protected override void Binding(BindingSet<ViewBase<CategoryObjectItemViewModel>, CategoryObjectItemViewModel> bindingSet)
+        protected override void Binding(BindingSet<SelectableItemView<CategoryObjectItemViewModel>, CategoryObjectItemViewModel> bindingSet)
         {
             base.Binding(bindingSet);
             bindingSet.Bind(m_Icon).For(v => v.sprite).To(vm => vm.Icon).OneWay();
             bindingSet.Bind(m_TooltipContent).For(v => v.description).To(vm => vm.Description).OneWay();
         }
-
     }
 }

@@ -36,7 +36,6 @@ namespace Johnny.SimDungeon
         }
         private T m_SelectedItem;
 
-
         private void OnItemSelect(T item)
         {
             if (SelectedItem == item)

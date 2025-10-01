@@ -36,7 +36,6 @@ namespace Johnny.SimDungeon
         }
         private bool m_IsVisible;
 
-
         public BuildCategory ActiveBuildCategory
         {
             get

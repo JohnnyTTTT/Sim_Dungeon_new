@@ -1,6 +1,7 @@
 using DungeonArchitect;
 using DungeonArchitect.Flow.Domains.Tilemap;
 using Loxodon.Framework.Binding;
+using Loxodon.Framework.Contexts;
 using Loxodon.Framework.Messaging;
 using Sirenix.OdinInspector;
 using SoulGames.EasyGridBuilderPro;
@@ -35,9 +36,6 @@ namespace Johnny.SimDungeon
             }
 
         }
-
-
-
         private static SpawnManager s_Instance;
 
         [Title("Global Settings")]
@@ -63,6 +61,7 @@ namespace Johnny.SimDungeon
 
         public EasyGridBuilderProXZ m_EasyGridBuilderPro_SmallCell;
         public EasyGridBuilderProXZ m_EasyGridBuilderPro_LargeCell;
+        private EasyGridBuilderProXZ m_CurrentEasyGridBuilderPro;
 
         [Title("Default BuildableGridObjectSO")]
         public BuildableCornerObjectSO defaultFloor;
@@ -72,6 +71,7 @@ namespace Johnny.SimDungeon
 
 
         private GridManager m_GridManager;
+        private BuildableObjectsPanelViewModel m_BuildableObjectsPanelViewModel;
 
         [SerializeField] private List<BuildableGridObject> m_CandidateAreaExpandProxies = new List<BuildableGridObject>();
         [SerializeField] private List<Entity_Wall> m_CreatedBuildableEdgeObject = new List<Entity_Wall>();
@@ -79,11 +79,11 @@ namespace Johnny.SimDungeon
 
         private void Start()
         {
-            var staticBindingSet = this.CreateBindingSet();
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            m_BuildableObjectsPanelViewModel = serviceContainer.Resolve<BuildableObjectsPanelViewModel>();
 
-            staticBindingSet.Build();
             m_GridManager = GridManager.Instance;
-
+            m_GridManager.OnActiveGridModeChanged += OnActiveGridModeChanged;
             m_GridManager.OnActiveBuildableSOChanged += OnActiveBuildableSOChanged;
             m_GridManager.OnBuildableObjectPlaced += OnBuildableObjectPlaced;
             m_GridManager.OnGridObjectBoxPlacementFinalized += OnGridObjectBoxPlacementFinalized;
@@ -120,6 +120,7 @@ namespace Johnny.SimDungeon
                 {
                     entity.UpdateData();
                 }
+                spwanedEntityForEditor.Clear();
             }
 
 
@@ -129,6 +130,39 @@ namespace Johnny.SimDungeon
             //    item.CutWall();
             //}
 
+        }
+
+        public void SetInputActiveBuildableObjectSO(BuildableObjectSO buildableObjectSO, GridType gridType)
+        {
+            if (GridType != gridType)
+            {
+                ChangeGridType(gridType);
+            }
+            var grid = gridType == GridType.Large ? m_EasyGridBuilderPro_LargeCell : m_EasyGridBuilderPro_SmallCell;
+            if (grid.GetActiveGridMode() != GridMode.BuildMode)
+            {
+                grid.SetActiveGridMode(GridMode.BuildMode);
+            }
+            grid.SetInputActiveBuildableObjectSO(buildableObjectSO, null, true);
+        }
+
+        private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
+        {
+            if (gridMode != GridMode.BuildMode && m_BuildableObjectsPanelViewModel.SelectedItem != null)
+            {
+                m_BuildableObjectsPanelViewModel.SetSelectedItem(null);
+            }
+            if (gridMode == GridMode.None)
+            {
+                if (m_CurrentEasyGridBuilderPro != null && m_CurrentEasyGridBuilderPro.GetActiveGridMode() != GridMode.None)
+                {
+                    m_CurrentEasyGridBuilderPro.SetActiveGridMode(GridMode.None);
+                }
+                if (GridType != GridType.Nothing)
+                {
+                    ChangeGridType(GridType.Nothing);
+                }
+            }
         }
 
         public void UnInit()
@@ -150,16 +184,19 @@ namespace Johnny.SimDungeon
                     small.gameObject.SetActive(false);
                     large.gameObject.SetActive(false);
                     GridManager.Instance.SetActiveGridSystem(small);
+                    m_CurrentEasyGridBuilderPro = null;
                     break;
                 case GridType.Large:
                     large.gameObject.SetActive(true);
                     small.gameObject.SetActive(false);
                     GridManager.Instance.SetActiveGridSystem(large);
+                    m_CurrentEasyGridBuilderPro = large;
                     break;
                 case GridType.Small:
                     large.gameObject.SetActive(false);
                     small.gameObject.SetActive(true);
                     GridManager.Instance.SetActiveGridSystem(small);
+                    m_CurrentEasyGridBuilderPro = small;
                     break;
             }
         }

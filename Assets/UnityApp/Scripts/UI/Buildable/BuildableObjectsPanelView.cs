@@ -76,59 +76,11 @@ namespace Johnny.SimDungeon
             ActiveCategoryObjectItemView = message.NewValue;
         }
 
-        private EasyGridBuilderPro GetItemGridTypeEasyGridBuilderPro(BuildableGenItemViewModel item)
-        {
-            switch (item.Data.gridType)
-            {
-                case GridType.Undefined:
-                    break;
-                case GridType.Nothing:
-                    break;
-                case GridType.Large:
-                    return SpawnManager.Instance.m_EasyGridBuilderPro_LargeCell;
-                case GridType.Small:
-                    return SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell;
-                default:
-                    break;
-            }
-            return null;
-        }
-
-        //public bool temp_Lock;
-
         protected override void OnSelectedItemChanged(BuildableGenItemViewModel old, BuildableGenItemViewModel item)
         {
             if (item != null)
             {
-                //temp_Lock = true;
-                var grid = GetItemGridTypeEasyGridBuilderPro(item);
-
-                if (SpawnManager.Instance.GridType != item.Data.gridType)
-                {
-                    SpawnManager.Instance.ChangeGridType(item.Data.gridType);
-                }
-                if (grid.GetActiveGridMode() != GridMode.BuildMode)
-                {
-                    grid.SetActiveGridMode(GridMode.BuildMode);
-                }
-
-                grid.SetInputActiveBuildableObjectSO(item.Data.buildableObjectSO, null, true);
-                //temp_Lock = false;
-            }
-            else
-            {
-                if (old != null)
-                {
-                    var grid = GetItemGridTypeEasyGridBuilderPro(old);
-                    if (SpawnManager.Instance.GridType != GridType.Nothing)
-                    {
-                        SpawnManager.Instance.ChangeGridType(GridType.Nothing);
-                    }
-                    if (grid.GetActiveGridMode() != GridMode.None)
-                    {
-                        grid.SetActiveGridMode(GridMode.None);
-                    }
-                }
+                SpawnManager.Instance.SetInputActiveBuildableObjectSO(item.Data.buildableObjectSO, item.Data.gridType);
             }
         }
 
@@ -175,15 +127,8 @@ namespace Johnny.SimDungeon
 
             bindingSet.Build();
 
-            GridManager.Instance.OnActiveGridModeChanged += OnActiveGridModeChanged;
+            //GridManager.Instance.OnActiveGridModeChanged += OnActiveGridModeChanged;
         }
 
-        private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
-        {
-            if (gridMode != GridMode.BuildMode && m_ViewModel.SelectedItem != null)
-            {
-                m_ViewModel.SetSelectedItem(null);
-            }
-        }
     }
 }

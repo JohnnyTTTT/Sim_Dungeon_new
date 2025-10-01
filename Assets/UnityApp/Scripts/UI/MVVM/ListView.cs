@@ -8,38 +8,7 @@ using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
-    public class SelectableItemViewModel : ViewModelBase
-    {
-        public bool IsSelected
-        {
-            get { return this.m_Selected; }
-            set { 
-                this.Set(ref m_Selected, value);
-                OnSelect();
-            }
-        }
-        private bool m_Selected;
 
-        public ICommand SelectCommand
-        {
-            get { 
-                return this.m_SelectCommand;
-            }
-        }
-        private ICommand m_SelectCommand;
-
-
-        public SelectableItemViewModel(ICommand selectCommand)
-        {
-            this.m_SelectCommand = selectCommand;
-        }
-
-        protected virtual void OnSelect()
-        { 
-        
-        }
-
-    }
 
 
     public class ListView<T> : UIView where T : SelectableItemViewModel

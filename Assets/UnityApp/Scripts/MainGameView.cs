@@ -35,7 +35,7 @@ namespace Johnny.SimDungeon
                 {
                     Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<GameState>(m_GameState, value, nameof(GameState)));
                     Set(ref m_GameState, value);
-                    GameStateManager.Instance.ChangeState(m_GameState);
+
                 }
             }
         }
@@ -86,11 +86,11 @@ namespace Johnny.SimDungeon
         {
             if (buildableObjectSO != null)
             {
-                Debug.Log($"<BuildableObjectSO Changed> - ,{easyGridBuilderPro.name} , { buildableObjectSO.objectName.SetColor(Color.blue)}");
+                Debug.Log($"<BuildableObjectSO Changed> - {easyGridBuilderPro.name} , { buildableObjectSO.objectName.SetColor(Color.blue)}");
             }
             else
             {
-                Debug.Log($"<BuildableObjectSO Changed> - {"NULL".SetColor(Color.blue)}");
+                Debug.Log($"<BuildableObjectSO Changed> - {easyGridBuilderPro.name} , {"NULL".SetColor(Color.blue)}");
             }
         }
 
