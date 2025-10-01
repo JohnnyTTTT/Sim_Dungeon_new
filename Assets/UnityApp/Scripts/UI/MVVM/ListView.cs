@@ -15,7 +15,7 @@ namespace Johnny.SimDungeon
             get { return this.m_Selected; }
             set { 
                 this.Set(ref m_Selected, value);
-                RaisePropertyChanged();
+                OnSelect();
             }
         }
         private bool m_Selected;
@@ -32,6 +32,11 @@ namespace Johnny.SimDungeon
         public SelectableItemViewModel(ICommand selectCommand)
         {
             this.m_SelectCommand = selectCommand;
+        }
+
+        protected virtual void OnSelect()
+        { 
+        
         }
 
     }

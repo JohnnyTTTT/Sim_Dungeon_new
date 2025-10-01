@@ -42,7 +42,7 @@ namespace Johnny.SimDungeon
             }
         }
     }
-    public class CategoryObjectItemView : ListButtonView<CategoryObjectItemViewModel>
+    public class CategoryObjectItemView : SelectableItemView<CategoryObjectItemViewModel>
     {
         [SerializeField] private Image m_Icon;
         [SerializeField] private TooltipContent m_TooltipContent;

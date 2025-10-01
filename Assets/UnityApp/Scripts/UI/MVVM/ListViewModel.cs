@@ -9,7 +9,7 @@ namespace Johnny.SimDungeon
     public class ListViewModel<T> : ViewModelBase where T : SelectableItemViewModel
     {
         protected SimpleCommand<T> ItemSelectCommand;
-        protected SimpleCommand<T> ItemClickCommand;
+
         public ObservableList<T> Items
         {
             get { return this.m_Items; }
@@ -21,7 +21,6 @@ namespace Johnny.SimDungeon
         {
             Items = new ObservableList<T>();
             ItemSelectCommand = new SimpleCommand<T>(OnItemSelect);
-            ItemClickCommand = new SimpleCommand<T>(OnItemClick);
         }
 
         public T SelectedItem
@@ -37,10 +36,6 @@ namespace Johnny.SimDungeon
         }
         private T m_SelectedItem;
 
-        protected virtual void OnItemClick(T item)
-        {
-
-        }
 
         private void OnItemSelect(T item)
         {
@@ -56,7 +51,7 @@ namespace Johnny.SimDungeon
 
         public void SetSelectedItem(T item)
         {
-            foreach (var i in Items)
+            foreach (var i in m_Items)
             {
                 i.IsSelected = false;
             }
@@ -76,6 +71,15 @@ namespace Johnny.SimDungeon
         protected virtual void OnSelectedItemChanged(T old, T item)
         {
 
+        }
+
+        public void ClearItem()
+        {
+            if (this.m_Items.Count <= 0)
+                return;
+
+            this.m_Items.Clear();
+            SetSelectedItem(null);
         }
     }
 }

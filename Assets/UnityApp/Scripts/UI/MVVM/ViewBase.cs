@@ -1,5 +1,7 @@
 using Loxodon.Framework.Binding;
 using Loxodon.Framework.Binding.Builder;
+using Loxodon.Framework.Contexts;
+using Loxodon.Framework.Services;
 using Loxodon.Framework.ViewModels;
 using Loxodon.Framework.Views;
 using UnityEngine;
@@ -42,5 +44,10 @@ namespace Johnny.SimDungeon
         }
 
         protected abstract void Binding(BindingSet<ViewBase<VM>, VM> bindingSet);
+
+        public IServiceContainer GetServiceContainer()
+        {
+          return  Context.GetApplicationContext().GetContainer();
+        }
     }
 }

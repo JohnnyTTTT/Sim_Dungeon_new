@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace Johnny.SimDungeon
 {
-    public class ListButtonView<VM> : ViewBase<VM> where VM : SelectableItemViewModel
+    public class SelectableItemView<VM> : ViewBase<VM> where VM : SelectableItemViewModel
     {
         [SerializeField] private Button m_Button;
         [SerializeField] private Image m_Image;

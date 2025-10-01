@@ -10,7 +10,6 @@ namespace Johnny.SimDungeon
     {
         public GameObject Instantiate(GameObject template, Vector3 position, Quaternion rotation, Vector3 scale, Transform parent)
         {
-
             GameObject reslut = null;
             if (Application.isPlaying)
             {

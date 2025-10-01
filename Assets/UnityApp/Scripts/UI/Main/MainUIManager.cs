@@ -45,16 +45,9 @@ namespace Johnny.SimDungeon
 
         protected override void Start()
         {
-            ViewModel = BindingService.MainGameViewModel;
+            //ViewModel = BindingService.MainGameViewModel;
             m_GridManager = GridManager.Instance;
             base.Start();
-        }
-
-        public void Init()
-        {
-            m_CategoryObjectsPanelView.Init();
-            m_BuildableObjectsPanelView.Init();
-            Debug.Log("[-----UI-----] : UI system init");
         }
 
 

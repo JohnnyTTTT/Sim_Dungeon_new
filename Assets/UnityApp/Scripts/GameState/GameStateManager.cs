@@ -25,7 +25,7 @@ namespace Johnny.SimDungeon
         private Dictionary<GameState, IGameState> allStates;
         private IGameState currentState;
         private MainGameViewModel m_MainGameViewModel;
-
+        public bool WorldInited;
         // 公开属性，用于查询当前模式
         public GameState CurrentMode => currentState.StateID;
 
@@ -56,7 +56,7 @@ namespace Johnny.SimDungeon
         /// 核心方法：状态转换
         /// </summary>
         /// <param name="newMode">目标状态标识符</param>
-        public void ChangeMode(GameState newMode)
+        public void ChangeState(GameState newMode)
         {
             if (newMode == currentState.StateID)
                 return; // 目标状态已经是当前状态

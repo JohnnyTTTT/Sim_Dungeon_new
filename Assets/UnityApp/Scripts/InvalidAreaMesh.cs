@@ -19,8 +19,8 @@ namespace Johnny.SimDungeon
             var tris = new List<int>();
             var cellSize = 2;
      
-            var width = DungeonController.Instance.largeTilemapSize.x;
-            var hight = DungeonController.Instance.largeTilemapSize.y;
+            var width = WorldManager.Instance.largeTilemapSize.x;
+            var hight = WorldManager.Instance.largeTilemapSize.y;
             var index = 0;
 
             for (int y = 0; y < hight; y++)

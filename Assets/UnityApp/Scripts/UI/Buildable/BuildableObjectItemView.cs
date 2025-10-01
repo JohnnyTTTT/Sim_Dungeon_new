@@ -57,7 +57,7 @@ namespace Johnny.SimDungeon
         }
     }
 
-    public class BuildableObjectItemView : ListButtonView<BuildableGenItemViewModel>
+    public class BuildableObjectItemView : SelectableItemView<BuildableGenItemViewModel>
     {
         [SerializeField] private Image m_Icon;
         [SerializeField] private TooltipContent m_TooltipContent;

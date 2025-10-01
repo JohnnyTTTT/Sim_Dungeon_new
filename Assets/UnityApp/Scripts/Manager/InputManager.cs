@@ -1,3 +1,4 @@
+using Loxodon.Framework.Contexts;
 using SoulGames.EasyGridBuilderPro;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,7 @@ namespace Johnny.SimDungeon
         [SerializeField] private InputActionAsset m_InputActionsAsset;
 
         private SelectionViewModel m_SelectionViewModel;
+        private CellInfoViewModel m_CellInfoViewModel;
 
         public InputAction floodFillAction;
         public InputAction selectAction;
@@ -43,9 +45,69 @@ namespace Johnny.SimDungeon
 
         private bool isPlacing;
         private GridManager m_GridManager;
+
+        public Element_LargeCell HoverLargeCell
+        {
+            get
+            {
+                return m_HoverLargeCell;
+            }
+            set
+            {
+                m_HoverLargeCell = value;
+                m_CellInfoViewModel.HoverLargeCell = m_HoverLargeCell;
+            }
+        }
+        private Element_LargeCell m_HoverLargeCell;
+
+        public Element_SmallCell HoverSmallCell
+        {
+            get
+            {
+                return m_HoverSmallCell;
+            }
+            set
+            {
+                m_HoverSmallCell = value;
+                m_CellInfoViewModel.HoverSmallCell = m_HoverSmallCell = value;
+            }
+        }
+        private Element_SmallCell m_HoverSmallCell;
+
+        public Entity HoverEntity
+        {
+            get
+            {
+                return m_HoverEntity;
+            }
+            set
+            {
+                m_HoverEntity = value;
+                m_SelectionViewModel.HoverEntity = m_HoverEntity;
+            }
+        }
+        private Entity m_HoverEntity;
+
+        public Entity SelectEntity
+        {
+            get
+            {
+                return m_SelectEntity;
+            }
+            set
+            {
+                m_SelectEntity = value;
+                m_SelectionViewModel.SelectEntity = m_SelectEntity;
+            }
+        }
+        private Entity m_SelectEntity;
+
         private void Start()
         {
-            m_SelectionViewModel = BindingService.SelectionViewModel;
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            m_SelectionViewModel = serviceContainer.Resolve<SelectionViewModel>();
+            m_CellInfoViewModel = serviceContainer.Resolve<CellInfoViewModel>();
+
             m_GridManager = GridManager.Instance;
 
             var map = m_InputActionsAsset.FindActionMap(DEFAULT);
@@ -72,13 +134,10 @@ namespace Johnny.SimDungeon
 
         }
 
-
-
         private void OnBuildableObjectEndMovingByBuildableObjectMoverDelegate(BuildableObject buildableObject)
         {
             Debug.Log(1);
         }
-
 
         private void OnActiveBuildableSOChanged(EasyGridBuilderPro easyGridBuilderPro, BuildableObjectSO buildableObjectSO)
         {
@@ -100,10 +159,6 @@ namespace Johnny.SimDungeon
             }
             else
             {
-                Debug.Log(EventSystem.current.IsPointerOverGameObject());
-                Debug.Log(EventSystem.current.currentSelectedGameObject);
-                Debug.Log(EventSystem.current.firstSelectedGameObject);
-                Debug.Log(EventSystem.current.lastSelectedGameObject);
                 if (!EventSystem.current.IsPointerOverGameObject())
                 {
                     HandleHover();
@@ -115,9 +170,9 @@ namespace Johnny.SimDungeon
 
         private void OnBuildableObjectDestroyedInternal(EasyGridBuilderPro easyGridBuilderPro, BuildableObject buildableObject)
         {
-            if (m_SelectionViewModel.SelectEntity != null && m_SelectionViewModel.SelectEntity.buildableObject == buildableObject)
+            if (SelectEntity != null && SelectEntity.buildableObject == buildableObject)
             {
-                m_SelectionViewModel.SelectEntity = null;
+                SelectEntity = null;
             }
         }
 
@@ -131,27 +186,27 @@ namespace Johnny.SimDungeon
                 var coord = CoordUtility.WorldPositionToSmallCoord(point);
                 if (SpawnManager.Instance.IsSamllCoordInBounds(coord))
                 {
-                    m_SelectionViewModel.HoverSmallCell = ElementManager_SmallCell.Instance.GetElement(coord);
+                    HoverSmallCell = ElementManager_SmallCell.Instance.GetElement(coord);
                 }
                 else
                 {
-                    m_SelectionViewModel.HoverSmallCell = null;
+                    HoverSmallCell = null;
                 }
-                m_SelectionViewModel.HoverLargeCell = ElementManager_LargeCell.Instance.GetElement(point);
+                HoverLargeCell = ElementManager_LargeCell.Instance.GetElement(point);
 
                 if (hit.transform.TryGetComponent<Entity>(out var entity))
                 {
-                    if (m_SelectionViewModel.HoverEntity != entity)
+                    if (HoverEntity != entity)
                     {
                         // 移除旧 hover 高亮（如果不是选中）
-                        if (m_SelectionViewModel.HoverEntity != null && m_SelectionViewModel.HoverEntity != m_SelectionViewModel.SelectEntity)
-                            m_SelectionViewModel.HoverEntity.ShowOutline(false);
+                        if (HoverEntity != null && HoverEntity != SelectEntity)
+                            HoverEntity.ShowOutline(false);
 
                         // 给新 hover 高亮（但不要覆盖选中的高亮）
-                        if (entity != m_SelectionViewModel.SelectEntity)
+                        if (entity != SelectEntity)
                             entity.ShowOutline(true);
 
-                        m_SelectionViewModel.HoverEntity = entity;
+                        HoverEntity = entity;
                     }
                     return;
                 }
@@ -159,10 +214,10 @@ namespace Johnny.SimDungeon
             }
 
             // 鼠标没指向任何对象 → 取消 hover（但不影响选中）
-            if (m_SelectionViewModel.HoverEntity != null && m_SelectionViewModel.HoverEntity != m_SelectionViewModel.SelectEntity)
+            if (HoverEntity != null && HoverEntity != SelectEntity)
             {
-                m_SelectionViewModel.HoverEntity.ShowOutline(false);
-                m_SelectionViewModel.HoverEntity = null;
+                HoverEntity.ShowOutline(false);
+                HoverEntity = null;
             }
         }
 
@@ -179,25 +234,21 @@ namespace Johnny.SimDungeon
 
         private void HandleClick()
         {
-            var mouse = Mouse.current; Debug.Log(mouse);
-            if (mouse == null) return;
+            if (Mouse.current == null) return;
             if (Mouse.current.leftButton.wasPressedThisFrame)
-                Debug.Log("鼠标左键点下");
-            if (mouse.leftButton.wasPressedThisFrame)
             {
-                Debug.Log(111);
                 // 如果有旧的选中对象，取消高亮
-                if (m_SelectionViewModel.SelectEntity != null && m_SelectionViewModel.SelectEntity != m_SelectionViewModel.HoverEntity)
+                if (SelectEntity != null && SelectEntity != HoverEntity)
                 {
                     ClearSelection();
                 }
 
                 // 设置新的选中对象并保持高亮
-                if (m_SelectionViewModel.HoverEntity != null && m_SelectionViewModel.HoverEntity.canSelect)
+                if (HoverEntity != null && HoverEntity.canSelect)
                 {
-                    m_SelectionViewModel.SelectEntity = m_SelectionViewModel.HoverEntity;
-                    m_SelectionViewModel.SelectEntity.ShowOutline(true);
-                    ShowRegionsRange(m_SelectionViewModel.SelectEntity, true);
+                    SelectEntity = HoverEntity;
+                    SelectEntity.ShowOutline(true);
+                    ShowRegionsRange(SelectEntity, true);
                 }
             }
         }
@@ -215,11 +266,11 @@ namespace Johnny.SimDungeon
 
         public void ClearSelection()
         {
-            if (m_SelectionViewModel.SelectEntity != null)
+            if (SelectEntity != null)
             {
-                m_SelectionViewModel.SelectEntity.ShowOutline(false);
-                ShowRegionsRange(m_SelectionViewModel.SelectEntity, false);
-                m_SelectionViewModel.SelectEntity = null;
+                SelectEntity.ShowOutline(false);
+                ShowRegionsRange(SelectEntity, false);
+                SelectEntity = null;
             }
         }
     }

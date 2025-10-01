@@ -1,5 +1,6 @@
 using Loxodon.Framework.Binding.Builder;
 using Loxodon.Framework.Interactivity;
+using Loxodon.Framework.Messaging;
 using Loxodon.Framework.Observables;
 using Loxodon.Framework.ViewModels;
 using Sirenix.OdinInspector;
@@ -32,83 +33,13 @@ namespace Johnny.SimDungeon
             {
                 if (m_GameState != value)
                 {
+                    Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<GameState>(m_GameState, value, nameof(GameState)));
                     Set(ref m_GameState, value);
-                    GameStateManager.Instance.ChangeMode(m_GameState);
-                    RaisePropertyChanged();
+                    GameStateManager.Instance.ChangeState(m_GameState);
                 }
             }
         }
         private GameState m_GameState = GameState.Default;
-
-        public GridType GridType
-        {
-            get
-            {
-                return m_GridType;
-            }
-            set
-            {
-                Set(ref m_GridType, value);
-                //Debug.Log($"<GridType Changed> - {m_GridType.SetColor(Color.lightGoldenRodYellow)}");
-                var small = SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell;
-                var large = SpawnManager.Instance.m_EasyGridBuilderPro_LargeCell;
-                switch (m_GridType)
-                {
-                    case GridType.Undefined:
-                        small.gameObject.SetActive(false);
-                        large.gameObject.SetActive(false);
-                        break;
-                    case GridType.Nothing:
-                        small.gameObject.SetActive(false);
-                        large.gameObject.SetActive(false);
-                        GridManager.Instance.SetActiveGridSystem(small);
-                        break;
-                    case GridType.Large:
-                        large.gameObject.SetActive(true);
-                        small.gameObject.SetActive(false);
-                        GridManager.Instance.SetActiveGridSystem(large);
-                        break;
-                    case GridType.Small:
-                        large.gameObject.SetActive(false);
-                        small.gameObject.SetActive(true);
-                        GridManager.Instance.SetActiveGridSystem(small);
-                        break;
-                }
-            }
-        }
-        private GridType m_GridType;
-
-        public bool IsBuildableMode
-        {
-            get
-            {
-                return GameState == GameState.Structure || GameState == GameState.Placement;
-            }
-        }
-
-        public bool ShouldShowCategoryUI
-        {
-            get
-            {
-                return IsBuildableMode;
-            }
-        }
-
-        public bool ShouldShowBuildableUI
-        {
-            get
-            {
-                Debug.Log(11);
-                return IsBuildableMode && BindingService.CategoryObjectsPanelViewModel.SelectedItem != null;
-            }
-        }
-
-        public MainGameViewModel()
-        {
-
-        }
-
-
     }
 
 
@@ -130,7 +61,7 @@ namespace Johnny.SimDungeon
 
         private GridManager m_GridManager;
 
-        protected  void Start()
+        protected void Start()
         {
             m_GridManager = GridManager.Instance;
             m_GridManager.OnActiveEasyGridBuilderProChanged += OnActiveEasyGridBuilderProChanged;

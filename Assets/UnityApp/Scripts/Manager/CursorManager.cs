@@ -58,7 +58,7 @@ namespace Johnny.SimDungeon
 
         private void Start()
         {
-            DungeonController.Instance.OnWorldCreated += OnWorldCreated;
+            //DungeonController.Instance.OnWorldCreated += OnWorldCreated;
             GridManager.Instance.OnActiveGridModeChanged += OnActiveGridModeChanged;
         }
 

@@ -1,4 +1,6 @@
 using SoulGames.EasyGridBuilderPro;
+using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Johnny.SimDungeon
@@ -7,15 +9,24 @@ namespace Johnny.SimDungeon
     {
         public GameState StateID => GameState.Loading;
         private GameStateManager manager;
+        private GridManager m_GridManager;
+
+    
 
         public LoadingState(GameStateManager manager)
         {
             this.manager = manager;
+
         }
 
         public void Enter()
         {
+
         }
+
+
+
+
 
         public void Exit()
         {
@@ -23,7 +34,6 @@ namespace Johnny.SimDungeon
 
         public void Update()
         {
-            /* 默认模式下的逻辑 */
         }
     }
 }

@@ -1,7 +1,10 @@
 using Loxodon.Framework.Binding;
 using Loxodon.Framework.Binding.Builder;
+using Loxodon.Framework.Contexts;
 using Loxodon.Framework.Interactivity;
+using Loxodon.Framework.Messaging;
 using Loxodon.Framework.Observables;
+using Loxodon.Framework.Services;
 using Loxodon.Framework.Tutorials;
 using Loxodon.Framework.ViewModels;
 using Loxodon.Framework.Views;
@@ -18,7 +21,21 @@ namespace Johnny.SimDungeon
 {
     public class CategoryObjectsPanelViewModel : ListViewModel<CategoryObjectItemViewModel>
     {
-        public Dictionary<BuildCategory, ObservableList<CategoryObjectItemViewModel>> AllItems = new Dictionary<BuildCategory, ObservableList<CategoryObjectItemViewModel>>();
+        public Dictionary<BuildCategory, ObservableList<CategoryObjectItemViewModel>> AllItems;
+
+        public bool IsVisible
+        {
+            get
+            {
+                return m_IsVisible;
+            }
+            set
+            {
+                Set(ref m_IsVisible, value);
+            }
+        }
+        private bool m_IsVisible;
+
 
         public BuildCategory ActiveBuildCategory
         {
@@ -30,7 +47,8 @@ namespace Johnny.SimDungeon
             {
                 if (m_ActiveBuildCategory != value)
                 {
-                    m_ActiveBuildCategory = value;
+                    Set(ref m_ActiveBuildCategory, value);
+                    SetSelectedItem(null);
                     if (AllItems.TryGetValue(m_ActiveBuildCategory, out var datas))
                     {
                         Items = datas;
@@ -40,61 +58,87 @@ namespace Johnny.SimDungeon
         }
         private BuildCategory m_ActiveBuildCategory;
 
-        protected override void OnSelectedItemChanged(CategoryObjectItemViewModel old, CategoryObjectItemViewModel item)
+        private IDisposable m_Subscription;
+
+        public CategoryObjectsPanelViewModel(BuildableGenAssets buildableGenAssets)
         {
-            BindingService.BuildableObjectsPanelViewModel.ActiveCategoryObjectItemView = item;
+            m_Subscription = Loxodon.Framework.Messaging.Messenger.Default.Subscribe<PropertyChangedMessage<GameState>>(OnGameStateChanged);
+            AllItems = new Dictionary<BuildCategory, ObservableList<CategoryObjectItemViewModel>>();
+            CreateItems(buildableGenAssets);
         }
 
-        public CategoryObjectItemViewModel CreateItem(BuildableObjectUICategorySO buildableObjectUICategorySO)
+        private void OnGameStateChanged(PropertyChangedMessage<GameState> message)
         {
-            var item = new CategoryObjectItemViewModel(buildableObjectUICategorySO, this.ItemSelectCommand);
-            return item;
-        }
-    }
-
-    public class CategoryObjectsPanelView : ViewBase<CategoryObjectsPanelViewModel>
-    {
-        [SerializeField] private AnimationPanel m_AnimationPanel;
-        [SerializeField] private CategoryObjectsListView m_ListView;
-
-        protected override void Start()
-        {
-            ViewModel = BindingService.CategoryObjectsPanelViewModel;
-            base.Start();
-        }
-
-        protected override void Binding(BindingSet<ViewBase<CategoryObjectsPanelViewModel>, CategoryObjectsPanelViewModel> bindingSet)
-        {
-            bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
-
-        }
-
-        protected override void StaticBinding(BindingSet<ViewBase<CategoryObjectsPanelViewModel>> staticBindingSet)
-        {
-            staticBindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).To(() => BindingService.MainGameViewModel.ShouldShowCategoryUI).OneWay();
-        }
-
-        public void Init()
-        {
-            var allItems = ViewModel.AllItems;
-            foreach (var buildableGen in BuildableAssets.Instance.buildableGenAssets.allAssets)
+            var value = message.NewValue;
+            IsVisible = value == GameState.Structure || value == GameState.Placement;
+            if (value == GameState.Structure)
             {
-                if (!allItems.ContainsKey(buildableGen.buildCategory))
-                {
-                    allItems[buildableGen.buildCategory] = new ObservableList<CategoryObjectItemViewModel>();
-                }
-                var item = ViewModel.CreateItem(buildableGen.buildableObjectSO.buildableObjectUICategorySO);
-                allItems[buildableGen.buildCategory].Add(item);
+                IsVisible = true;
+                ActiveBuildCategory = BuildCategory.Structure;
+            }
+            else if (value == GameState.Placement)
+            {
+                IsVisible = true;
+                ActiveBuildCategory = BuildCategory.Placement;
+            }
+            else
+            {
+                IsVisible = false;
+                ActiveBuildCategory = BuildCategory.None;
             }
         }
 
-        private void OnActiveBuildableSOChanged(EasyGridBuilderPro easyGridBuilderPro, BuildableObjectSO buildableObjectSO)
+        protected override void OnSelectedItemChanged(CategoryObjectItemViewModel old, CategoryObjectItemViewModel item)
         {
-            //if (BindingService.MainGameViewModel.ActiveEasyGridBuilderPro != easyGridBuilderPro) return;
-            //if (buildableObjectSO == null && ViewModel.SelectedItem != null)
-            //{
-            //    ViewModel.SelectedItem = null;
-            //}
+            Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<CategoryObjectItemViewModel>(old, item, nameof(OnSelectedItemChanged)));
+            //BindingService.BuildableObjectsPanelViewModel.ActiveCategoryObjectItemView = item;
+        }
+
+        public void CreateItems(BuildableGenAssets buildableGenAssets)
+        {
+            foreach (var buildableGen in BuildableAssets.Instance.buildableGenAssets.allAssets)
+            {
+                if (!AllItems.ContainsKey(buildableGen.buildCategory))
+                {
+                    AllItems[buildableGen.buildCategory] = new ObservableList<CategoryObjectItemViewModel>();
+                }
+                var item = new CategoryObjectItemViewModel(buildableGen.buildableObjectSO.buildableObjectUICategorySO, this.ItemSelectCommand);
+                AllItems[buildableGen.buildCategory].Add(item);
+            }
+        }
+
+    }
+
+    public class CategoryObjectsPanelView : UIView
+    {
+        [SerializeField] private AnimationPanel m_AnimationPanel;
+        [SerializeField] private CategoryObjectsListView m_ListView;
+        private CategoryObjectsPanelViewModel m_ViewModel;
+        protected override void Awake()
+        {
+            m_ViewModel = new CategoryObjectsPanelViewModel(BuildableAssets.Instance.buildableGenAssets);
+            this.SetDataContext(m_ViewModel);
+
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            serviceContainer.Register(m_ViewModel);
+        }
+
+        protected override void Start()
+        {
+            var bindingSet = this.CreateBindingSet<CategoryObjectsPanelView, CategoryObjectsPanelViewModel>();
+
+            bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).To(vm => vm.IsVisible).OneWay();
+            bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
+
+            bindingSet.Build();
+        }
+
+        private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
+        {
+            if (gridMode != GridMode.BuildMode && m_ViewModel.SelectedItem != null)
+            {
+                m_ViewModel.SetSelectedItem(null);
+            }
         }
 
     }

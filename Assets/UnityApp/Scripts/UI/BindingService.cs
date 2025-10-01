@@ -1,12 +1,14 @@
 using Loxodon.Framework.Binding;
 using Loxodon.Framework.Contexts;
+using Loxodon.Framework.Services;
 using Loxodon.Framework.ViewModels;
 using SoulGames.EasyGridBuilderPro;
+using System;
 using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
-
+    [DefaultExecutionOrder(-100)]
     public class BindingService : MonoBehaviour
     {
         public static BindingService Instance
@@ -22,29 +24,23 @@ namespace Johnny.SimDungeon
         }
         private static BindingService s_Instance;
 
-        public static MainGameViewModel MainGameViewModel;
-        public static SelectionViewModel SelectionViewModel;
-
-        public static BuildableObjectsPanelViewModel BuildableObjectsPanelViewModel;
-        public static CategoryObjectsPanelViewModel CategoryObjectsPanelViewModel;
-
         private BindingServiceBundle m_BindingServiceBundle;
-
-        public bool Init;
 
         private void Awake()
         {
             Debug.Log($"[------ BindingService ------ ] : Init");
             var context = Context.GetApplicationContext();
-            m_BindingServiceBundle = new BindingServiceBundle(context.GetContainer());
+            var serviceContainer = context.GetContainer();
+            m_BindingServiceBundle = new BindingServiceBundle(serviceContainer);
             m_BindingServiceBundle.Start();
 
-            MainGameViewModel = new MainGameViewModel();
-            SelectionViewModel = new SelectionViewModel();
-            BuildableObjectsPanelViewModel = new BuildableObjectsPanelViewModel();
-            CategoryObjectsPanelViewModel = new CategoryObjectsPanelViewModel();
+            var mainGameViewModel = new MainGameViewModel();
+            serviceContainer.Register(mainGameViewModel);
+            //SelectionViewModel = new SelectionViewModel();
+            //BuildableObjectsPanelViewModel = new BuildableObjectsPanelViewModel();
+            //CategoryObjectsPanelViewModel = new CategoryObjectsPanelViewModel();
+            //FixedToolbarViewModel = new FixedToolbarViewModel();
 
-            Init = true;
         }
 
         private void OnDestroy()

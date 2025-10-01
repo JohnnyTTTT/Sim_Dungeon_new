@@ -64,8 +64,8 @@ namespace Johnny.SimDungeon
             {
                 m_GridMaterial = m_EasyGridBuilderProXZ.GetComponentInChildren<Renderer>().sharedMaterial;
             }
-            var gridWidth = DungeonController.Instance.smallTilemapSize.x;
-            var gridLength = DungeonController.Instance.smallTilemapSize.y;
+            var gridWidth = WorldManager.Instance.smallTilemapSize.x;
+            var gridLength = WorldManager.Instance.smallTilemapSize.y;
             var generatedTexture = m_GridMaterial.GetTexture(Shader.PropertyToID("_Generated_Texture")) as Texture2D;
             var colors = new Color[gridWidth * gridLength];
             for (int x = 0; x < gridWidth; x++)

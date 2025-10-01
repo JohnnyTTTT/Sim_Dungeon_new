@@ -1,3 +1,4 @@
+using Loxodon.Framework.Contexts;
 using SoulGames.EasyGridBuilderPro;
 using UnityEngine;
 
@@ -13,14 +14,15 @@ namespace Johnny.SimDungeon
         public DefaultState(GameStateManager manager)
         {
             this.manager = manager;
-            m_MainGameViewModel = BindingService.MainGameViewModel;
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
             m_GridManager = GridManager.Instance;
         }
 
         public void Enter()
         {
             m_GridManager.SetActiveGridModeInAllGrids(GridMode.None);
-            m_MainGameViewModel.GridType = GridType.Nothing;
+            SpawnManager.Instance.ChangeGridType(GridType.Nothing);
         }
 
         public void Exit()

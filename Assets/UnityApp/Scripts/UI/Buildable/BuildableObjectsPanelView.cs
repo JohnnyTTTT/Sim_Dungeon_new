@@ -9,13 +9,17 @@ using TMPro;
 using UnityEngine.UI;
 using static UnityEditor.Profiling.HierarchyFrameDataView;
 using Loxodon.Framework.Interactivity;
+using Loxodon.Framework.Contexts;
+using Loxodon.Framework.Messaging;
+using Loxodon.Framework.Views;
+using Loxodon.Framework.Binding;
 
 namespace Johnny.SimDungeon
 {
 
     public class BuildableObjectsPanelViewModel : ListViewModel<BuildableGenItemViewModel>
     {
-        public Dictionary<BuildableObjectUICategorySO, ObservableList<BuildableGenItemViewModel>> AllItems = new Dictionary<BuildableObjectUICategorySO, ObservableList<BuildableGenItemViewModel>>();
+        public Dictionary<BuildableObjectUICategorySO, ObservableList<BuildableGenItemViewModel>> AllItems;
 
         public CategoryObjectItemViewModel ActiveCategoryObjectItemView
         {
@@ -31,6 +35,7 @@ namespace Johnny.SimDungeon
                     if (m_activeCategoryObjectItemView! != null)
                     {
                         SetSelectedItem(null);
+                        //ClearItem();
                         if (AllItems.TryGetValue(m_activeCategoryObjectItemView.Data, out var datas))
                         {
                             Items = datas;
@@ -52,6 +57,23 @@ namespace Johnny.SimDungeon
             {
                 return ActiveCategoryObjectItemView != null ? ActiveCategoryObjectItemView.Data.categoryName : "";
             }
+        }
+
+        private MainGameViewModel m_MainGameViewModel;
+        private IDisposable m_Subscription;
+
+        public BuildableObjectsPanelViewModel(BuildableGenAssets buildableGenAssets)
+        {
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
+            m_Subscription = Loxodon.Framework.Messaging.Messenger.Default.Subscribe<PropertyChangedMessage<CategoryObjectItemViewModel>>(OnCategoryObjectItemViewModelChanged);
+            AllItems = new Dictionary<BuildableObjectUICategorySO, ObservableList<BuildableGenItemViewModel>>();
+            CreateItems(buildableGenAssets);
+        }
+
+        private void OnCategoryObjectItemViewModelChanged(PropertyChangedMessage<CategoryObjectItemViewModel> message)
+        {
+            ActiveCategoryObjectItemView = message.NewValue;
         }
 
         private EasyGridBuilderPro GetItemGridTypeEasyGridBuilderPro(BuildableGenItemViewModel item)
@@ -81,9 +103,9 @@ namespace Johnny.SimDungeon
                 //temp_Lock = true;
                 var grid = GetItemGridTypeEasyGridBuilderPro(item);
 
-                if (BindingService.MainGameViewModel.GridType != item.Data.gridType)
+                if (SpawnManager.Instance.GridType != item.Data.gridType)
                 {
-                    BindingService.MainGameViewModel.GridType = item.Data.gridType;
+                    SpawnManager.Instance.ChangeGridType(item.Data.gridType);
                 }
                 if (grid.GetActiveGridMode() != GridMode.BuildMode)
                 {
@@ -98,9 +120,9 @@ namespace Johnny.SimDungeon
                 if (old != null)
                 {
                     var grid = GetItemGridTypeEasyGridBuilderPro(old);
-                    if (BindingService.MainGameViewModel.GridType != GridType.Nothing)
+                    if (SpawnManager.Instance.GridType != GridType.Nothing)
                     {
-                        BindingService.MainGameViewModel.GridType = GridType.Nothing;
+                        SpawnManager.Instance.ChangeGridType(GridType.Nothing);
                     }
                     if (grid.GetActiveGridMode() != GridMode.None)
                     {
@@ -110,63 +132,57 @@ namespace Johnny.SimDungeon
             }
         }
 
-        public BuildableGenItemViewModel CreateItem(BuildableGen buildableGen)
+        public void CreateItems(BuildableGenAssets buildableGenAssets)
         {
-            var item = new BuildableGenItemViewModel(buildableGen, ItemSelectCommand);
-            return item;
+            foreach (var buildableGen in BuildableAssets.Instance.buildableGenAssets.allAssets)
+            {
+                var categorySO = buildableGen.buildableObjectSO.buildableObjectUICategorySO;
+                if (!AllItems.ContainsKey(categorySO))
+                {
+                    AllItems[categorySO] = new ObservableList<BuildableGenItemViewModel>();
+                }
+                var item = new BuildableGenItemViewModel(buildableGen, ItemSelectCommand);
+                AllItems[categorySO].Add(item);
+            }
         }
+
     }
 
-    public class BuildableObjectsPanelView : ViewBase<BuildableObjectsPanelViewModel>
+    public class BuildableObjectsPanelView : UIView
     {
         [SerializeField] private AnimationPanel m_AnimationPanel;
         [SerializeField] private BuildableObjectListView m_ListView;
         [SerializeField] private TextMeshProUGUI m_Title;
+        private BuildableObjectsPanelViewModel m_ViewModel;
+
+        protected override void Awake()
+        {
+            m_ViewModel = new BuildableObjectsPanelViewModel(BuildableAssets.Instance.buildableGenAssets);
+            this.SetDataContext(m_ViewModel);
+
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            serviceContainer.Register(m_ViewModel);
+        }
 
 
         protected override void Start()
         {
-            ViewModel = BindingService.BuildableObjectsPanelViewModel;
-            //GridManager.Instance.OnActiveBuildableSOChanged += OnActiveBuildableSOChanged;
-            GridManager.Instance.OnActiveGridModeChanged += OnActiveGridModeChanged;
-            base.Start();
-        }
+            var bindingSet = this.CreateBindingSet<BuildableObjectsPanelView, BuildableObjectsPanelViewModel>();
 
-        protected override void Binding(BindingSet<ViewBase<BuildableObjectsPanelViewModel>, BuildableObjectsPanelViewModel> bindingSet)
-        {
             bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
             bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).ToExpression(vm => vm.ActiveCategoryObjectItemView != null).OneWay();
             bindingSet.Bind(this.m_Title).For(v => v.text).To(vm => vm.CategoryObjectItemName).OneWay();
-        }
 
-        public void Init()
-        {
-            var allItems = ViewModel.AllItems;
-            foreach (var buildableGen in BuildableAssets.Instance.buildableGenAssets.allAssets)
-            {
-                var categorySO = buildableGen.buildableObjectSO.buildableObjectUICategorySO;
-                if (!ViewModel.AllItems.ContainsKey(categorySO))
-                {
-                    ViewModel.AllItems[categorySO] = new ObservableList<BuildableGenItemViewModel>();
-                }
-                var item = ViewModel.CreateItem(buildableGen);
-                allItems[categorySO].Add(item);
-            }
-        }
+            bindingSet.Build();
 
-        //private void OnActiveBuildableSOChanged(EasyGridBuilderPro easyGridBuilderPro, BuildableObjectSO buildableObjectSO)
-        //{
-        //    if (!ViewModel.temp_Lock && buildableObjectSO == null && ViewModel.SelectedItem != null)
-        //    {
-        //        ViewModel.SetSelectedItem(null);
-        //    }
-        //}
+            GridManager.Instance.OnActiveGridModeChanged += OnActiveGridModeChanged;
+        }
 
         private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
         {
-            if (gridMode != GridMode.BuildMode &&  ViewModel.SelectedItem != null)
+            if (gridMode != GridMode.BuildMode && m_ViewModel.SelectedItem != null)
             {
-                ViewModel.SetSelectedItem(null);
+                m_ViewModel.SetSelectedItem(null);
             }
         }
     }

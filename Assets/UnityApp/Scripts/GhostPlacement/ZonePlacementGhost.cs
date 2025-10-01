@@ -1,3 +1,4 @@
+using Loxodon.Framework.Contexts;
 using Sirenix.OdinInspector;
 using SoulGames.EasyGridBuilderPro;
 using System;
@@ -17,11 +18,12 @@ namespace Johnny.SimDungeon
         private Vector2Int m_LastDetectionCoord;
         private GridManager m_GridManager;
         private InputManager m_InputManager;
-        private SelectionViewModel m_SelectionViewModel;
+        private CellInfoViewModel m_SelectionViewModel;
 
         private void Start()
         {
-            m_SelectionViewModel = BindingService.SelectionViewModel;
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            m_SelectionViewModel = serviceContainer.Resolve<CellInfoViewModel>();
 
             m_GridManager = GridManager.Instance;
             m_GridManager.OnActiveBuildableSOChanged += OnActiveBuildableSOChanged;

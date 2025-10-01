@@ -210,7 +210,7 @@ namespace Johnny.SimDungeon
         {
             var visited = new HashSet<Element_SmallCell>();
             var queue = new Queue<Element_SmallCell>();
-            var mapSize = DungeonController.Instance.smallTilemapSize;
+            var mapSize = WorldManager.Instance.smallTilemapSize;
 
             var origin = start.coord;
             int halfRange = maxRange / 2;
@@ -262,7 +262,7 @@ namespace Johnny.SimDungeon
         {
             var visited = new HashSet<Element_LargeCell>();
             var queue = new Queue<Element_LargeCell>();
-            var mapSize = DungeonController.Instance.smallTilemapSize;
+            var mapSize = WorldManager.Instance.smallTilemapSize;
 
             var origin = start.coord;
             int halfRange = maxRange / 2;

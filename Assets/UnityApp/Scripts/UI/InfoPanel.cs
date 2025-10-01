@@ -3,10 +3,14 @@ using Loxodon.Framework.ViewModels;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Loxodon.Framework.Contexts;
+using Loxodon.Framework.Views;
+using Loxodon.Framework.Binding;
+using SoulGames.EasyGridBuilderPro;
 
 namespace Johnny.SimDungeon
 {
-    public class SelectionViewModel : ViewModelBase
+    public class CellInfoViewModel : ViewModelBase
     {
         public Element_LargeCell HoverLargeCell
         {
@@ -21,7 +25,6 @@ namespace Johnny.SimDungeon
         }
         private Element_LargeCell m_HoverLargeCell;
 
-
         public Element_SmallCell HoverSmallCell
         {
             get
@@ -31,36 +34,12 @@ namespace Johnny.SimDungeon
             set
             {
                 Set(ref m_SmallCell, value);
+                RaisePropertyChanged();
             }
         }
         private Element_SmallCell m_SmallCell;
 
-        public Entity HoverEntity
-        {
-            get
-            {
-                return m_HoverEntity;
-            }
-            set
-            {
-                Set(ref m_HoverEntity, value);
-                RaisePropertyChanged();
-            }
-        }
-        private Entity m_HoverEntity;
 
-        public Entity SelectEntity
-        {
-            get
-            {
-                return m_SelectEntity;
-            }
-            set
-            {
-                Set(ref m_SelectEntity, value);
-            }
-        }
-        private Entity m_SelectEntity;
 
         public Region Region
         {
@@ -76,7 +55,7 @@ namespace Johnny.SimDungeon
         }
         private Region m_Region;
 
-        public string Title
+        public string SmallCellTitle
         {
             get
             {
@@ -84,7 +63,7 @@ namespace Johnny.SimDungeon
             }
         }
 
-        public string CoordText
+        public string SmallCellCoordText
         {
             get
             {
@@ -99,29 +78,34 @@ namespace Johnny.SimDungeon
                 return Region != null  ? Region.name : "No Region";
             }
         }
-
     }
 
-
-    public class InfoPanel : ViewBase<SelectionViewModel>
+    public class InfoPanel : UIView
     {
+        private CellInfoViewModel m_CellInfoViewModel;
         [SerializeField] private TextMeshProUGUI m_Title;
         [SerializeField] private TextMeshProUGUI m_CoordText;
         [SerializeField] private TextMeshProUGUI m_RegionText;
 
+        protected override void Awake()
+        {
+            m_CellInfoViewModel = new CellInfoViewModel();
+            this.SetDataContext(m_CellInfoViewModel);
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            serviceContainer.Register(m_CellInfoViewModel);
+        }
 
         protected override void Start()
         {
-            ViewModel = BindingService.SelectionViewModel;
-            base.Start();
-        }
+            var bindingSet = this.CreateBindingSet<InfoPanel, CellInfoViewModel>();
+            //bindingSet.Bind(this.gameObject).For(v => v.activeSelf).ToExpression((vm) => vm.SelectEntity != null);
 
-        protected override void Binding(BindingSet<ViewBase<SelectionViewModel>, SelectionViewModel> bindingSet)
-        {
             bindingSet.Bind(this.gameObject).For(v => v.activeSelf).ToExpression(vm => vm.HoverSmallCell != null).OneWay();
-            bindingSet.Bind(this.m_Title).For(v => v.text).To(vm => vm.Title).OneWay();
-            bindingSet.Bind(this.m_CoordText).For(v => v.text).To(vm => vm.CoordText).OneWay();
+            bindingSet.Bind(this.m_Title).For(v => v.text).To(vm => vm.SmallCellTitle).OneWay();
+            bindingSet.Bind(this.m_CoordText).For(v => v.text).To(vm => vm.SmallCellCoordText).OneWay();
             bindingSet.Bind(this.m_RegionText).For(v => v.text).To(vm => vm.Region).OneWay();
+
+            bindingSet.Build();
         }
     }
 }
