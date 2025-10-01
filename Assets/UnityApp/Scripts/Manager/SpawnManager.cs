@@ -15,11 +15,10 @@ using static UnityEngine.EventSystems.EventTrigger;
 
 namespace Johnny.SimDungeon
 {
-    [System.Serializable]
-    public class SpawnRulee
+    public enum StructureMode
     {
-        public RoomType roomType;
-        public BuildableGenAssets Biome;
+        None,
+        LandExpand,
     }
 
     public class SpawnManager : MonoBehaviour
@@ -59,9 +58,35 @@ namespace Johnny.SimDungeon
         }
         private GridType m_GridType;
 
+        public DestroyMode DestroyMode
+        {
+            get
+            {
+                return m_DestroyMode;
+            }
+            private set
+            {
+                m_DestroyMode = value;
+            }
+        }
+        private DestroyMode m_DestroyMode;
+
+        public GridMode GridMode
+        {
+            get
+            {
+                return m_GridMode;
+            }
+            private set
+            {
+                m_GridMode = value;
+                m_MainGameViewModel.GridMode = m_GridMode;
+            }
+        }
+        private GridMode m_GridMode;
+
         public EasyGridBuilderProXZ m_EasyGridBuilderPro_SmallCell;
         public EasyGridBuilderProXZ m_EasyGridBuilderPro_LargeCell;
-        private EasyGridBuilderProXZ m_CurrentEasyGridBuilderPro;
 
         [Title("Default BuildableGridObjectSO")]
         public BuildableCornerObjectSO defaultFloor;
@@ -71,7 +96,11 @@ namespace Johnny.SimDungeon
 
 
         private GridManager m_GridManager;
+        private BuildableObjectDestroyer m_BuildableObjectDestroyer;
+        private BuildableObjectSelector m_BuildableObjectSelector;
+        private BuildableObjectMover m_BuildableObjectMover;
         private BuildableObjectsPanelViewModel m_BuildableObjectsPanelViewModel;
+        private MainGameViewModel m_MainGameViewModel;
 
         [SerializeField] private List<BuildableGridObject> m_CandidateAreaExpandProxies = new List<BuildableGridObject>();
         [SerializeField] private List<Entity_Wall> m_CreatedBuildableEdgeObject = new List<Entity_Wall>();
@@ -80,17 +109,28 @@ namespace Johnny.SimDungeon
         private void Start()
         {
             var serviceContainer = Context.GetApplicationContext().GetContainer();
+            m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
             m_BuildableObjectsPanelViewModel = serviceContainer.Resolve<BuildableObjectsPanelViewModel>();
 
             m_GridManager = GridManager.Instance;
-            m_GridManager.OnActiveGridModeChanged += OnActiveGridModeChanged;
-            m_GridManager.OnActiveBuildableSOChanged += OnActiveBuildableSOChanged;
+            //m_GridManager.OnActiveGridModeChanged += OnActiveGridModeChanged;
+            //m_GridManager.OnActiveBuildableSOChanged += OnActiveBuildableSOChanged;
             m_GridManager.OnBuildableObjectPlaced += OnBuildableObjectPlaced;
             m_GridManager.OnGridObjectBoxPlacementFinalized += OnGridObjectBoxPlacementFinalized;
             m_GridManager.OnEdgeObjectBoxPlacementFinalized += OnGridObjectBoxPlacementFinalized;
             m_GridManager.OnEdgeObjectBoxPlacementFinalized += OnEdgeObjectBoxPlacementFinalized;
-
-
+            if (m_GridManager.TryGetBuildableObjectDestroyer(out var buildableObjectDestroyer))
+            {
+                m_BuildableObjectDestroyer = buildableObjectDestroyer;
+            }
+            if (GridManager.Instance.TryGetBuildableObjectMover(out var buildableObjectMover))
+            {
+                m_BuildableObjectMover = buildableObjectMover;
+            }
+            if (GridManager.Instance.TryGetBuildableObjectSelector(out var buildableObjectSelector))
+            {
+                m_BuildableObjectSelector = buildableObjectSelector;
+            }
             //m_GridManager.GetActiveEasyGridBuilderPro().GetActiveGridCellData
         }
 
@@ -134,72 +174,113 @@ namespace Johnny.SimDungeon
 
         public void SetInputActiveBuildableObjectSO(BuildableObjectSO buildableObjectSO, GridType gridType)
         {
-            if (GridType != gridType)
+            if (GridMode != GridMode.BuildMode)
             {
-                ChangeGridType(gridType);
+                SetActiveGridModeInAllGrids(GridMode.BuildMode);
             }
-            var grid = gridType == GridType.Large ? m_EasyGridBuilderPro_LargeCell : m_EasyGridBuilderPro_SmallCell;
-            if (grid.GetActiveGridMode() != GridMode.BuildMode)
+
+            SetGridType(gridType);
+
+            if (buildableObjectSO != null)
             {
-                grid.SetActiveGridMode(GridMode.BuildMode);
+                foreach (var easyGridBuilderPro in m_GridManager.GetEasyGridBuilderProSystemsList())
+                {
+                    easyGridBuilderPro.SetInputActiveBuildableObjectSO(buildableObjectSO, null, true);
+                }
             }
-            grid.SetInputActiveBuildableObjectSO(buildableObjectSO, null, true);
         }
 
-        private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
+        private void OnActiveBuildableSOChanged(EasyGridBuilderPro easyGridBuilderPro, BuildableObjectSO buildableObjectSO)
         {
-            if (gridMode != GridMode.BuildMode && m_BuildableObjectsPanelViewModel.SelectedItem != null)
+
+        }
+
+        public void GridModeReset()
+        {
+            if (m_BuildableObjectsPanelViewModel.SelectedItem != null)
             {
                 m_BuildableObjectsPanelViewModel.SetSelectedItem(null);
             }
-            if (gridMode == GridMode.None)
+            foreach (var easyGridBuilderPro in m_GridManager.GetEasyGridBuilderProSystemsList())
             {
-                if (m_CurrentEasyGridBuilderPro != null && m_CurrentEasyGridBuilderPro.GetActiveGridMode() != GridMode.None)
+                easyGridBuilderPro.SetInputGridModeReset();
+            }
+            m_BuildableObjectMover.SetInputGridModeReset();
+            m_BuildableObjectDestroyer.SetInputGridModeReset();
+            m_BuildableObjectSelector.SetInputGridModeReset();
+            SetGridType(GridType.Nothing);
+        }
+
+        public void SetActiveGridModeInAllGrids(GridMode gridMode)
+        {
+            m_GridManager.SetActiveGridModeInAllGrids(gridMode, false);
+        }
+
+        public void SetDestroyModeInAllGrids(DestroyMode mode)
+        {
+            if (DestroyMode != mode)
+            {
+                switch (mode)
                 {
-                    m_CurrentEasyGridBuilderPro.SetActiveGridMode(GridMode.None);
+                    case DestroyMode.None:
+                        SetActiveGridModeInAllGrids(GridMode.None);
+                        break;
+                    case DestroyMode.Edge:
+                        m_BuildableObjectDestroyer.SetInputDestructableBuildableObjectType(DestructableBuildableObjectType.BuildableEdgeObject);
+                        SetActiveGridModeInAllGrids(GridMode.DestroyMode);
+                        break;
+                    case DestroyMode.Entity:
+                        m_BuildableObjectDestroyer.SetInputDestructableBuildableObjectType(DestructableBuildableObjectType.BuildableGridObject);
+                        SetActiveGridModeInAllGrids(GridMode.DestroyMode);
+                        break;
+                    default:
+                        break;
                 }
-                if (GridType != GridType.Nothing)
+                DestroyMode = mode;
+            }
+
+        }
+
+
+
+
+
+
+
+        public void SetGridType(GridType type)
+        {
+            if (GridType != type)
+            {
+                var small = m_EasyGridBuilderPro_SmallCell;
+                var large = Instance.m_EasyGridBuilderPro_LargeCell;
+                switch (type)
                 {
-                    ChangeGridType(GridType.Nothing);
+                    case GridType.Undefined:
+                        small.gameObject.SetActive(false);
+                        large.gameObject.SetActive(false);
+                        break;
+                    case GridType.Nothing:
+                        small.gameObject.SetActive(false);
+                        large.gameObject.SetActive(false);
+                        GridManager.Instance.SetActiveGridSystem(small);
+                        break;
+                    case GridType.Large:
+                        large.gameObject.SetActive(true);
+                        small.gameObject.SetActive(false);
+                        GridManager.Instance.SetActiveGridSystem(large);
+                        break;
+                    case GridType.Small:
+                        large.gameObject.SetActive(false);
+                        small.gameObject.SetActive(true);
+                        GridManager.Instance.SetActiveGridSystem(small);
+                        break;
                 }
             }
         }
 
-        public void UnInit()
-        {
-            spwanedEntityForEditor.Clear();
-        }
 
-        public void ChangeGridType(GridType type)
-        {
-            var small = m_EasyGridBuilderPro_SmallCell;
-            var large = Instance.m_EasyGridBuilderPro_LargeCell;
-            switch (type)
-            {
-                case GridType.Undefined:
-                    small.gameObject.SetActive(false);
-                    large.gameObject.SetActive(false);
-                    break;
-                case GridType.Nothing:
-                    small.gameObject.SetActive(false);
-                    large.gameObject.SetActive(false);
-                    GridManager.Instance.SetActiveGridSystem(small);
-                    m_CurrentEasyGridBuilderPro = null;
-                    break;
-                case GridType.Large:
-                    large.gameObject.SetActive(true);
-                    small.gameObject.SetActive(false);
-                    GridManager.Instance.SetActiveGridSystem(large);
-                    m_CurrentEasyGridBuilderPro = large;
-                    break;
-                case GridType.Small:
-                    large.gameObject.SetActive(false);
-                    small.gameObject.SetActive(true);
-                    GridManager.Instance.SetActiveGridSystem(small);
-                    m_CurrentEasyGridBuilderPro = small;
-                    break;
-            }
-        }
+
+
 
         private void OnDestroy()
         {
@@ -226,10 +307,7 @@ namespace Johnny.SimDungeon
             return GridType.Nothing;
         }
 
-        private void OnActiveBuildableSOChanged(EasyGridBuilderPro easyGridBuilderPro, BuildableObjectSO buildableObjectSO)
-        {
 
-        }
 
         private void OnGridObjectBoxPlacementFinalized(EasyGridBuilderPro easyGridBuilderPro)
         {

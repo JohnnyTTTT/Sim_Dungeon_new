@@ -74,6 +74,7 @@ namespace Johnny.SimDungeon
         private void OnCategoryObjectItemViewModelChanged(PropertyChangedMessage<CategoryObjectItemViewModel> message)
         {
             ActiveCategoryObjectItemView = message.NewValue;
+  
         }
 
         protected override void OnSelectedItemChanged(BuildableGenItemViewModel old, BuildableGenItemViewModel item)
@@ -100,9 +101,9 @@ namespace Johnny.SimDungeon
 
     }
 
-    public class BuildableObjectsPanelView : UIView
+    public class BuildableObjectsPanelView : AnimationUIView
     {
-        [SerializeField] private AnimationPanel m_AnimationPanel;
+        [SerializeField] private UIViewPositionAnimation m_AnimationPanel;
         [SerializeField] private BuildableObjectListView m_ListView;
         [SerializeField] private TextMeshProUGUI m_Title;
         private BuildableObjectsPanelViewModel m_ViewModel;
@@ -121,8 +122,8 @@ namespace Johnny.SimDungeon
         {
             var bindingSet = this.CreateBindingSet<BuildableObjectsPanelView, BuildableObjectsPanelViewModel>();
 
+            bindingSet.Bind(this).For(v => v.Visibility).ToExpression(vm => vm.ActiveCategoryObjectItemView != null).OneWay();
             bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
-            bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).ToExpression(vm => vm.ActiveCategoryObjectItemView != null).OneWay();
             bindingSet.Bind(this.m_Title).For(v => v.text).To(vm => vm.CategoryObjectItemName).OneWay();
 
             bindingSet.Build();

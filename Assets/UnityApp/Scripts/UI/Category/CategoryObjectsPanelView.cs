@@ -23,19 +23,6 @@ namespace Johnny.SimDungeon
     {
         public Dictionary<BuildCategory, ObservableList<CategoryObjectItemViewModel>> AllItems;
 
-        public bool IsVisible
-        {
-            get
-            {
-                return m_IsVisible;
-            }
-            set
-            {
-                Set(ref m_IsVisible, value);
-            }
-        }
-        private bool m_IsVisible;
-
         public BuildCategory ActiveBuildCategory
         {
             get
@@ -69,26 +56,23 @@ namespace Johnny.SimDungeon
         private void OnGameStateChanged(PropertyChangedMessage<GameState> message)
         {
             var value = message.NewValue;
-            IsVisible = value == GameState.Structure || value == GameState.Placement;
             if (value == GameState.Structure)
             {
-                IsVisible = true;
                 ActiveBuildCategory = BuildCategory.Structure;
             }
             else if (value == GameState.Placement)
             {
-                IsVisible = true;
                 ActiveBuildCategory = BuildCategory.Placement;
             }
             else
             {
-                IsVisible = false;
                 ActiveBuildCategory = BuildCategory.None;
             }
         }
 
         protected override void OnSelectedItemChanged(CategoryObjectItemViewModel old, CategoryObjectItemViewModel item)
         {
+            SpawnManager.Instance.GridModeReset();
             Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<CategoryObjectItemViewModel>(old, item, nameof(OnSelectedItemChanged)));
             //BindingService.BuildableObjectsPanelViewModel.ActiveCategoryObjectItemView = item;
         }
@@ -108,11 +92,12 @@ namespace Johnny.SimDungeon
 
     }
 
-    public class CategoryObjectsPanelView : UIView
+    public class CategoryObjectsPanelView : AnimationUIView
     {
-        [SerializeField] private AnimationPanel m_AnimationPanel;
+        [SerializeField] private UIViewPositionAnimation m_AnimationPanel;
         [SerializeField] private CategoryObjectsListView m_ListView;
         private CategoryObjectsPanelViewModel m_ViewModel;
+
         protected override void Awake()
         {
             m_ViewModel = new CategoryObjectsPanelViewModel(BuildableAssets.Instance.buildableGenAssets);
@@ -126,7 +111,7 @@ namespace Johnny.SimDungeon
         {
             var bindingSet = this.CreateBindingSet<CategoryObjectsPanelView, CategoryObjectsPanelViewModel>();
 
-            bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).To(vm => vm.IsVisible).OneWay();
+            //bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).To(vm => vm.IsVisible).OneWay();
             bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
 
             bindingSet.Build();

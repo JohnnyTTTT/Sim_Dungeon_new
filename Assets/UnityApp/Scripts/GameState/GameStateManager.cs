@@ -1,6 +1,7 @@
 using DungeonArchitect.UI;
 using Johnny.SimDungeon;
 using Loxodon.Framework.Contexts;
+using Loxodon.Framework.Messaging;
 using System;
 using System.Collections.Generic;
 using Unity.Loading;
@@ -24,17 +25,16 @@ namespace Johnny.SimDungeon
         private static GameStateManager s_Instance;
 
         private Dictionary<GameState, IGameState> allStates;
+
+        public GameState CurrentState
+        {
+            get
+            { 
+            return currentState.StateID;
+            }
+        }
         private IGameState currentState;
         private MainGameViewModel m_MainGameViewModel;
-        public bool WorldInited;
-        // 公开属性，用于查询当前模式
-        public GameState CurrentMode => currentState.StateID;
-
-        private void Awake()
-        {
-            var serviceContainer = Context.GetApplicationContext().GetContainer();
-            m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
-        }
 
 
         /// <summary>
@@ -42,6 +42,9 @@ namespace Johnny.SimDungeon
         /// </summary>
         public void Initialize()
         {
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
+
             allStates = new Dictionary<GameState, IGameState>();
 
             // 实例化所有具体状态并添加到字典中
@@ -71,6 +74,8 @@ namespace Johnny.SimDungeon
 
             if (allStates.TryGetValue(newMode, out IGameState newState))
             {
+                var oldState = currentState;
+
                 // 1. 退出当前状态
                 currentState.Exit();
 
@@ -81,8 +86,8 @@ namespace Johnny.SimDungeon
                 currentState.Enter();
 
                 // 可选：在此处触发事件通知外部模块（例如 UI 刷新）
-                // OnGameModeChanged?.Invoke(newMode); 
-                m_MainGameViewModel.GameState = newMode;
+                // OnGameModeChanged?.Invoke(newMode);
+                m_MainGameViewModel.GameState = currentState.StateID;
                 Debug.Log($"<GameMode Switched> - {currentState.StateID.SetColor(Color.yellowGreen)}");
             }
             else

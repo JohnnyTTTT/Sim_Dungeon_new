@@ -34,8 +34,8 @@ namespace Johnny.SimDungeon
             m_BindingServiceBundle = new BindingServiceBundle(serviceContainer);
             m_BindingServiceBundle.Start();
 
-            var mainGameViewModel = new MainGameViewModel();
-            serviceContainer.Register(mainGameViewModel);
+            //var mainGameViewModel = new MainGameViewModel();
+            //serviceContainer.Register(mainGameViewModel);
             //SelectionViewModel = new SelectionViewModel();
             //BuildableObjectsPanelViewModel = new BuildableObjectsPanelViewModel();
             //CategoryObjectsPanelViewModel = new CategoryObjectsPanelViewModel();

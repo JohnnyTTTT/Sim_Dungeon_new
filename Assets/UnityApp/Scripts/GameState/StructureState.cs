@@ -4,12 +4,23 @@ using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
+    public interface IBuildGameState
+    {
+        DestroyMode DestroyMode { get; set; }
+
+        void ChangeDestroyMode();
+    }
+
     public class StructureState : IGameState
     {
         public GameState StateID => GameState.Structure;
+
+
+
+
         private GameStateManager manager;
-        private MainGameViewModel m_MainGameViewModel;
         private GridManager m_GridManager;
+        public DestroyMode destroyMode;
 
         public StructureState(GameStateManager manager)
         {
@@ -28,7 +39,7 @@ namespace Johnny.SimDungeon
 
         public void Exit()
         {
-
+            destroyMode = DestroyMode.None;
             //BindingService.BuildableObjectsPanelViewModel.ActiveCategoryObjectItemView = null;
             //BindingService.CategoryObjectsPanelViewModel.ActiveBuildCategory = BuildCategory.None;
         }
@@ -36,6 +47,11 @@ namespace Johnny.SimDungeon
         public void Update()
         {
             /* 默认模式下的逻辑 */
+        }
+
+        public void ChangeDestroyMode()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

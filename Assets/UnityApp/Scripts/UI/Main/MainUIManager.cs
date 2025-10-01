@@ -12,14 +12,6 @@ using UnityEngine.UI;
 namespace Johnny.SimDungeon
 {
 
-
-    public enum StructureMode
-    {
-        None,
-        LandExpand,
-    }
-
-
     public class MainUIManager : ViewBase<MainGameViewModel>
     {
         public static MainUIManager Instance

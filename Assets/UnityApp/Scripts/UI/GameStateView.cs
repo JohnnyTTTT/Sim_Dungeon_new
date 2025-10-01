@@ -24,6 +24,10 @@ namespace Johnny.SimDungeon
             {
                 GameStateManager.Instance.ChangeState(item.GameState);
             }
+            else
+            {
+                GameStateManager.Instance.ChangeState(GameState.Default);
+            }
         }
 
 

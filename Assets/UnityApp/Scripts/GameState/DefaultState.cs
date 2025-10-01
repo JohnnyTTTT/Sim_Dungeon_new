@@ -22,7 +22,7 @@ namespace Johnny.SimDungeon
         public void Enter()
         {
             m_GridManager.SetActiveGridModeInAllGrids(GridMode.None);
-            SpawnManager.Instance.ChangeGridType(GridType.Nothing);
+            SpawnManager.Instance.SetGridType(GridType.Nothing);
         }
 
         public void Exit()

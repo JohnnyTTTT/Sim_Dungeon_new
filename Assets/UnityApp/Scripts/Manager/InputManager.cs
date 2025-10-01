@@ -1,277 +1,284 @@
-using Loxodon.Framework.Contexts;
 using SoulGames.EasyGridBuilderPro;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace Johnny.SimDungeon
 {
     public class InputManager : MonoBehaviour
     {
-        private const string DEFAULT = "Default";
-        private const string FLOOD_FILL = "Flood Fill";
-        private const string SELECT = "Select";
+        [SerializeField] private InputActionAsset inputActionsAsset;
+        [SerializeField] private List<string> actionsToBlockWhenPointerOverUI;
 
-        public event Action<Entity> OnEntitySelect;
+        private InputActionMap coreGridActions;
+        private InputActionMap buildActions;
+        private InputActionMap destroyActions;
+        private InputActionMap moveActions;
 
-        public static InputManager Instance
+        private const string CORE_GRID_ACTIONS = "Core Grid Actions";
+        private const string BUILD_ACTIONS = "Build Actions";
+        private const string DESTROY_ACTIONS = "Destroy Actions";
+        private const string MOVE_ACTIONS = "Move Actions";
+
+        private const string GRID_MODE_RESET = "Grid Mode Reset";
+
+        private const string BUILD_MODE_ACTIVATION = "Build Mode Activation";
+        private const string BUILD = "Build";
+
+        private const string DESTROY_MODE_ACTIVATION = "Destroy Mode Activation";
+        private const string DESTROY = "Destroy";
+
+        private const string MOVE_MODE_ACTIVATION = "Move Mode Activation";
+        private const string MOVE = "Move";
+
+        private List<(InputAction.CallbackContext context, Action action)> pendingActions;
+        private bool isApplicationFocused;
+        private const float FOCUSED_APPLICATION_INPUT_ENABLE_DELAY = 0.1f;
+
+        private float doubleTapTime = 0.3f;
+        private float buildLastTapTime = -1f;
+        private bool isBuildSecondTapInProgress = false;
+
+        private float destroyLastTapTime = -1f;                 // Time of the last tap for destroying
+        private bool isDestroySecondTapInProgress = false;
+
+        private float moveLastTapTime = -1f;                    // Time of the last tap for moving
+        private bool isMoveSecondTapInProgress = false;
+
+        private void Awake()
         {
-            get
-            {
-                if (s_Instance == null)
-                {
-                    s_Instance = FindFirstObjectByType<InputManager>();
-                }
-                return s_Instance;
-            }
-
+            coreGridActions = inputActionsAsset.FindActionMap(CORE_GRID_ACTIONS);
+            buildActions = inputActionsAsset.FindActionMap(BUILD_ACTIONS);
+            destroyActions = inputActionsAsset.FindActionMap(DESTROY_ACTIONS);
+            //selectActions = inputActionsAsset.FindActionMap(SELECT_ACTIONS);
+            moveActions = inputActionsAsset.FindActionMap(MOVE_ACTIONS);
+            //heatMapActions = inputActionsAsset.FindActionMap(HEAT_MAP_ACTIONS);
         }
-        private static InputManager s_Instance;
 
-        [SerializeField] private LayerMask m_MouseCheckLayer;
-        [SerializeField] private InputActionAsset m_InputActionsAsset;
-
-        private SelectionViewModel m_SelectionViewModel;
-        private CellInfoViewModel m_CellInfoViewModel;
-
-        public InputAction floodFillAction;
-        public InputAction selectAction;
-
-
-        private bool isPlacing;
-        private GridManager m_GridManager;
-
-        public Element_LargeCell HoverLargeCell
+        private void OnEnable()
         {
-            get
-            {
-                return m_HoverLargeCell;
-            }
-            set
-            {
-                m_HoverLargeCell = value;
-                m_CellInfoViewModel.HoverLargeCell = m_HoverLargeCell;
-            }
+            inputActionsAsset.Enable();
+            InvokeSubscribeInputActionEvents();
         }
-        private Element_LargeCell m_HoverLargeCell;
-
-        public Element_SmallCell HoverSmallCell
-        {
-            get
-            {
-                return m_HoverSmallCell;
-            }
-            set
-            {
-                m_HoverSmallCell = value;
-                m_CellInfoViewModel.HoverSmallCell = m_HoverSmallCell = value;
-            }
-        }
-        private Element_SmallCell m_HoverSmallCell;
-
-        public Entity HoverEntity
-        {
-            get
-            {
-                return m_HoverEntity;
-            }
-            set
-            {
-                m_HoverEntity = value;
-                m_SelectionViewModel.HoverEntity = m_HoverEntity;
-            }
-        }
-        private Entity m_HoverEntity;
-
-        public Entity SelectEntity
-        {
-            get
-            {
-                return m_SelectEntity;
-            }
-            set
-            {
-                m_SelectEntity = value;
-                m_SelectionViewModel.SelectEntity = m_SelectEntity;
-            }
-        }
-        private Entity m_SelectEntity;
 
         private void Start()
         {
-            var serviceContainer = Context.GetApplicationContext().GetContainer();
-            m_SelectionViewModel = serviceContainer.Resolve<SelectionViewModel>();
-            m_CellInfoViewModel = serviceContainer.Resolve<CellInfoViewModel>();
+            pendingActions = new List<(InputAction.CallbackContext, Action)>();
+            EasyGridBuilderPro.OnGridSystemCreated += OnGridSystemCreated;
 
-            m_GridManager = GridManager.Instance;
-
-            var map = m_InputActionsAsset.FindActionMap(DEFAULT);
-
-            floodFillAction = map.FindAction(FLOOD_FILL);
-            floodFillAction.Enable();
-
-            selectAction = map.FindAction(SELECT);
-            selectAction.Enable();
-
-            //selectAction.performed += OnSelectPerformed;
-
-            m_GridManager.OnActiveGridModeChanged += OnActiveGridModeChanged;
-            m_GridManager.OnActiveBuildableSOChanged += OnActiveBuildableSOChanged;
-
-            if (m_GridManager.TryGetBuildableObjectDestroyer(out var buildableObjectDestroyer))
+            foreach (EasyGridBuilderPro easyGridBuilderPro in GridManager.Instance.GetEasyGridBuilderProSystemsList())
             {
-                buildableObjectDestroyer.OnBuildableObjectDestroyedInternal += OnBuildableObjectDestroyedInternal;
+                SetEasyGridBuilderProList(easyGridBuilderPro);
             }
-            if (m_GridManager.TryGetBuildableObjectMover(out var buildableObjectMover))
+        }
+
+        private void OnDestroy()
+        {
+            EasyGridBuilderPro.OnGridSystemCreated -= OnGridSystemCreated;
+        }
+
+        private void LateUpdate()
+        {
+            foreach ((InputAction.CallbackContext context, Action action) in pendingActions)
             {
-                buildableObjectMover.OnBuildableObjectEndMoving += OnBuildableObjectEndMovingByBuildableObjectMoverDelegate;
+                if (isApplicationFocused && (!EventSystem.current.IsPointerOverGameObject() || !actionsToBlockWhenPointerOverUI.Contains(context.action.name))) action?.Invoke();
             }
-
+            pendingActions.Clear();
         }
 
-        private void OnBuildableObjectEndMovingByBuildableObjectMoverDelegate(BuildableObject buildableObject)
+        private void OnApplicationFocus(bool focusStatus)
         {
-            Debug.Log(1);
+            if (focusStatus) StartCoroutine(DelayInputProcessing());
+            else isApplicationFocused = false;
         }
 
-        private void OnActiveBuildableSOChanged(EasyGridBuilderPro easyGridBuilderPro, BuildableObjectSO buildableObjectSO)
+        #region Application Focus Validation Functions Start:
+        private IEnumerator DelayInputProcessing()
         {
+            // Wait for 0.1 seconds before enabling input processing
+            yield return new WaitForSeconds(FOCUSED_APPLICATION_INPUT_ENABLE_DELAY);
+            isApplicationFocused = true;
+        }
+        #endregion Application Focus Validation Functions End:
 
+        private void OnGridSystemCreated(EasyGridBuilderPro easyGridBuilderPro)
+        {
+            SetEasyGridBuilderProList(easyGridBuilderPro);
         }
 
-        private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
+        private void SetEasyGridBuilderProList(EasyGridBuilderPro easyGridBuilderPro)
         {
-            ClearSelection();
-            isPlacing = gridMode == GridMode.BuildMode;
+            easyGridBuilderPro.SetInputGridModeVariables(true, true, false, true);
         }
 
-        private void Update()
+        private void InvokeSubscribeInputActionEvents()
         {
+            SubscribeInputActionEvents(
+                (coreGridActions.FindAction(GRID_MODE_RESET), null, GridModeResetActionPerformed, null),
 
-            if (isPlacing)
+                (buildActions.FindAction(BUILD_MODE_ACTIVATION), null, BuildModeActivationActionPerformed, null),
+                (buildActions.FindAction(BUILD), BuildActionStarted, BuildActionPerformed, BuildActionCancelled),
+              
+                (destroyActions.FindAction(DESTROY_MODE_ACTIVATION), null, DestroyModeActivationActionPerformed, null),
+                (destroyActions.FindAction(DESTROY), DestroyActionStarted, DestroyActionPerformed, DestroyActionCancelled),
+
+
+                (moveActions.FindAction(MOVE_MODE_ACTIVATION), null, MoveModeActivationActionPerformed, null),
+                (moveActions.FindAction(MOVE), MoveActionStarted, MoveActionPerformed, MoveActionCancelled)
+            );
+        }
+
+        private void SubscribeInputActionEvents(params (InputAction inputAction, Action<InputAction.CallbackContext> startedAction, Action<InputAction.CallbackContext> performedAction, Action<InputAction.CallbackContext> cancelledAction)[] actions)
+        {
+            foreach ((InputAction inputAction, Action<InputAction.CallbackContext> startedAction, Action<InputAction.CallbackContext> performedAction, Action<InputAction.CallbackContext> cancelledAction) actionTuple in actions)
             {
-
-            }
-            else
-            {
-                if (!EventSystem.current.IsPointerOverGameObject())
+                if (actionTuple.inputAction != null)
                 {
-                    HandleHover();
-                    HandleClick();
-                    HandleCancel();
+                    if (actionTuple.startedAction != null) actionTuple.inputAction.started += actionTuple.startedAction;
+                    if (actionTuple.performedAction != null) actionTuple.inputAction.performed += actionTuple.performedAction;
+                    if (actionTuple.cancelledAction != null) actionTuple.inputAction.canceled += actionTuple.cancelledAction;
                 }
             }
         }
 
-        private void OnBuildableObjectDestroyedInternal(EasyGridBuilderPro easyGridBuilderPro, BuildableObject buildableObject)
+
+        #region Grid Mode Reset Actions Start:
+        private void GridModeResetActionPerformed(InputAction.CallbackContext context)
         {
-            if (SelectEntity != null && SelectEntity.buildableObject == buildableObject)
+            EnqueueAction(context, () =>
             {
-                SelectEntity = null;
-            }
+                SpawnManager.Instance.GridModeReset();
+            });
+        }
+        #endregion Grid Mode Reset Actions End:
+
+        #region Build Mode Activation Actions Start:
+        private void BuildModeActivationActionPerformed(InputAction.CallbackContext context)
+        {
+            EnqueueAction(context, () => SpawnManager.Instance.SetActiveGridModeInAllGrids(GridMode.BuildMode));
+        }
+        #endregion Build Mode Activation Actions End:
+
+        #region Build Actions Start:
+        private void BuildActionStarted(InputAction.CallbackContext context)
+        {
+            var currentTime = Time.time;
+
+            // Check for double-tap timing
+            if (currentTime - buildLastTapTime <= doubleTapTime) isBuildSecondTapInProgress = true; // The second tap is now in progress
+            else isBuildSecondTapInProgress = false; // Reset if it's not within double-tap time
+
+            buildLastTapTime = currentTime;
         }
 
-        private void HandleHover()
+        private void BuildActionPerformed(InputAction.CallbackContext context)
         {
-            if (PhysicsUtility.MouseRaycastHit(m_MouseCheckLayer, out var hit))
+            foreach (EasyGridBuilderPro easyGridBuilderPro in GridManager.Instance.GetEasyGridBuilderProSystemsList())
             {
-                var point = hit.point;
-                point.y = 0;
-
-                var coord = CoordUtility.WorldPositionToSmallCoord(point);
-                if (SpawnManager.Instance.IsSamllCoordInBounds(coord))
-                {
-                    HoverSmallCell = ElementManager_SmallCell.Instance.GetElement(coord);
-                }
-                else
-                {
-                    HoverSmallCell = null;
-                }
-                HoverLargeCell = ElementManager_LargeCell.Instance.GetElement(point);
-
-                if (hit.transform.TryGetComponent<Entity>(out var entity))
-                {
-                    if (HoverEntity != entity)
-                    {
-                        // 移除旧 hover 高亮（如果不是选中）
-                        if (HoverEntity != null && HoverEntity != SelectEntity)
-                            HoverEntity.ShowOutline(false);
-
-                        // 给新 hover 高亮（但不要覆盖选中的高亮）
-                        if (entity != SelectEntity)
-                            entity.ShowOutline(true);
-
-                        HoverEntity = entity;
-                    }
-                    return;
-                }
-
-            }
-
-            // 鼠标没指向任何对象 → 取消 hover（但不影响选中）
-            if (HoverEntity != null && HoverEntity != SelectEntity)
-            {
-                HoverEntity.ShowOutline(false);
-                HoverEntity = null;
+                EnqueueAction(context, () => easyGridBuilderPro.SetInputBuildableObjectPlacement());
             }
         }
-
-        private void ShowRegionsRange(Entity entity, bool value)
+        [SerializeField] private bool placeMovingObjectOnInputRelease = false;
+        private void BuildActionCancelled(InputAction.CallbackContext context)
         {
-            var buildableObject = entity.buildableObject;
-            var positionList = buildableObject.GetObjectCellPositionList();
-
-            foreach (var position in positionList)
+            foreach (EasyGridBuilderPro easyGridBuilderPro in GridManager.Instance.GetEasyGridBuilderProSystemsList())
             {
-                ElementManager_Region.Instance.ShowRegionRangeFromSmallCoord(position, value);
+                EnqueueAction(context, () => easyGridBuilderPro.SetInputBuildableObjectPlacementComplete(placeMovingObjectOnInputRelease));
             }
         }
+        #endregion Build Actions End:
 
-        private void HandleClick()
+
+        #region Destroy Mode Activation Actions Start:
+        private void DestroyModeActivationActionPerformed(InputAction.CallbackContext context)
         {
-            if (Mouse.current == null) return;
-            if (Mouse.current.leftButton.wasPressedThisFrame)
-            {
-                // 如果有旧的选中对象，取消高亮
-                if (SelectEntity != null && SelectEntity != HoverEntity)
-                {
-                    ClearSelection();
-                }
+            if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
+            EnqueueAction(context, () => SpawnManager.Instance.SetActiveGridModeInAllGrids(GridMode.DestroyMode));
+        }
+        #endregion Destroy Mode Activation Actions End:
 
-                // 设置新的选中对象并保持高亮
-                if (HoverEntity != null && HoverEntity.canSelect)
-                {
-                    SelectEntity = HoverEntity;
-                    SelectEntity.ShowOutline(true);
-                    ShowRegionsRange(SelectEntity, true);
-                }
-            }
+        #region Destroy Actions Start:
+        private void DestroyActionStarted(InputAction.CallbackContext context)
+        {
+            if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
+
+            var currentTime = Time.time;
+
+            // Check for double-tap timing
+            if (currentTime - destroyLastTapTime <= doubleTapTime) isDestroySecondTapInProgress = true; // The second tap is now in progress
+            else isDestroySecondTapInProgress = false; // Reset if it's not within double-tap time
+
+            destroyLastTapTime = currentTime;
         }
 
-        private void HandleCancel()
+        private void DestroyActionPerformed(InputAction.CallbackContext context)
         {
-            var keyboard = Keyboard.current;
-            if (keyboard == null) return;
-
-            if (keyboard.escapeKey.wasPressedThisFrame)
+            if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
+            EnqueueAction(context, () =>
             {
-                ClearSelection();
-            }
+                if (GridManager.Instance.TryGetBuildableObjectDestroyer(out BuildableObjectDestroyer buildableObjectDestroyer)) buildableObjectDestroyer.SetInputDestroyBuildableObject();
+            });
         }
 
-        public void ClearSelection()
+        private void DestroyActionCancelled(InputAction.CallbackContext context)
         {
-            if (SelectEntity != null)
+            if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
+            EnqueueAction(context, () =>
             {
-                SelectEntity.ShowOutline(false);
-                ShowRegionsRange(SelectEntity, false);
-                SelectEntity = null;
-            }
+                if (GridManager.Instance.TryGetBuildableObjectDestroyer(out BuildableObjectDestroyer buildableObjectDestroyer)) buildableObjectDestroyer.SetInputDestroyBuildableObjectComplete();
+            });
         }
+        #endregion Destroy Actions End:
+
+
+        #region Move Mode Activation Actions Start:
+        private void MoveModeActivationActionPerformed(InputAction.CallbackContext context)
+        {
+            if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
+            EnqueueAction(context, () => SpawnManager.Instance.SetActiveGridModeInAllGrids(GridMode.MoveMode));
+        }
+        #endregion Move Mode Activation Actions End:
+
+        #region Move Action Start:
+        private void MoveActionStarted(InputAction.CallbackContext context)
+        {
+            if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
+
+            float currentTime = Time.time;
+
+            // Check for double-tap timing
+            if (currentTime - moveLastTapTime <= doubleTapTime) isMoveSecondTapInProgress = true; // The second tap is now in progress
+            else isMoveSecondTapInProgress = false; // Reset if it's not within double-tap time
+
+            moveLastTapTime = currentTime;
+        }
+
+        private void MoveActionPerformed(InputAction.CallbackContext context)
+        {
+            if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
+            EnqueueAction(context, () =>
+            {
+                if (GridManager.Instance.TryGetBuildableObjectMover(out BuildableObjectMover buildableObjectMover)) buildableObjectMover.SetInputStartMoveBuildableObject();
+            });
+        }
+
+        private void MoveActionCancelled(InputAction.CallbackContext context)
+        {
+            if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
+            //if (IsTouchInput(context)) isMoveSecondTapInProgress = false; // Ensure it's mobile touch input
+        }
+        #endregion Move Action End:
+
+
+        #region Late Update Functions Start:
+        private void EnqueueAction(InputAction.CallbackContext context, System.Action action)
+        {
+            // Add to pending actions to process in LateUpdate
+            pendingActions.Add((context, action));
+        }
+        #endregion Late Update Functions End:
     }
 }

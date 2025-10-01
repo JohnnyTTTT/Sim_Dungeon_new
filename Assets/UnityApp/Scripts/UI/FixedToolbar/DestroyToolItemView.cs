@@ -1,5 +1,7 @@
+using Loxodon.Framework.Binding;
 using Loxodon.Framework.Binding.Builder;
 using Loxodon.Framework.Commands;
+using Loxodon.Framework.Messaging;
 using Michsky.MUIP;
 using SoulGames.EasyGridBuilderPro;
 using System;
@@ -12,25 +14,31 @@ namespace Johnny.SimDungeon
 {
     public class DestroyToolViewModel : SelectableItemViewModel
     {
-        public DestroyToolViewModel(ICommand selectCommand) :base(selectCommand)
+        protected SimpleCommand ItemSelectCommand;
+
+
+        public DestroyToolViewModel() : base()
         {
+            ItemSelectCommand = new SimpleCommand(OnItemSelect);
+            SetSelectCommand(ItemSelectCommand);
         }
 
 
+
+        private void OnItemSelect()
+        {
+            IsSelected = true;
+            SpawnManager.Instance.SetDestroyModeInAllGrids(DestroyMode.Edge);
+        }
     }
 
 
     public class DestroyToolItemView : SelectableItemView<DestroyToolViewModel>
     {
-        protected override void Start()
+        protected override void Awake()
         {
-            //ViewModel = new DestroyToolViewModel(new SimpleCommand(ViewModel.OnSelect));
-            base.Start();
+            var vm = new DestroyToolViewModel();
+            this.SetDataContext(vm);
         }
-
-        //protected override void Binding(BindingSet<ViewBase<DestroyToolViewModel>, DestroyToolViewModel> bindingSet)
-        //{
-        //    base.Binding(bindingSet);
-        //}
     }
 }

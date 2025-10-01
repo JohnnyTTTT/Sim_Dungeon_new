@@ -1,5 +1,7 @@
+using Loxodon.Framework.Binding;
 using Loxodon.Framework.Binding.Builder;
 using Loxodon.Framework.Interactivity;
+using Loxodon.Framework.Messaging;
 using Loxodon.Framework.ViewModels;
 using Loxodon.Framework.Views;
 using SoulGames.EasyGridBuilderPro;
@@ -12,44 +14,50 @@ namespace Johnny.SimDungeon
 {
     public class FixedToolbarViewModel : ListViewModel<SelectableItemViewModel>
     {
+        private IDisposable m_Subscription;
 
-        public DestroyToolViewModel CreateDestroyToolViewModel()
+        public bool IsVisible
         {
-            var item = new DestroyToolViewModel(this.ItemSelectCommand);
-            Items.Add(item);
-            return item;
+            get
+            {
+                return m_IsVisible;
+            }
+            set
+            {
+                Set(ref m_IsVisible, value);
+            }
+        }
+        private bool m_IsVisible;
+
+        public FixedToolbarViewModel()
+        {
+            m_Subscription = Loxodon.Framework.Messaging.Messenger.Default.Subscribe<PropertyChangedMessage<GameState>>(OnGameStateChanged);
+        }
+
+        private void OnGameStateChanged(PropertyChangedMessage<GameState> message)
+        {
+            var value = message.NewValue;
+            IsVisible = value == GameState.Structure || value == GameState.Placement;
         }
     }
 
-    public class FixedToolbarView : ViewBase<FixedToolbarViewModel>
+    public class FixedToolbarView : AnimationUIView
     {
-        [SerializeField] private DestroyToolItemView m_DestroyButton;
-        [SerializeField] private AnimationPanel m_AnimationPanel;
+        [SerializeField] private UIViewPositionAnimation m_AnimationPanel;
+
+        private FixedToolbarViewModel m_ViewModel;
+
+        protected override void Awake()
+        {
+            m_ViewModel = new FixedToolbarViewModel();
+            this.SetDataContext(m_ViewModel);
+        }
 
         protected override void Start()
         {
-            //ViewModel = BindingService.FixedToolbarViewModel;
-            //m_DestroyButton.ViewModel = ViewModel.CreateDestroyToolViewModel();
-            //GridManager.Instance.OnActiveGridModeChanged += OnActiveGridModeChanged;
-            base.Start();
-        }
-
-        protected override void Binding(BindingSet<ViewBase<FixedToolbarViewModel>, FixedToolbarViewModel> bindingSet)
-        {
-
-        }
-
-        protected override void StaticBinding(BindingSet<ViewBase<FixedToolbarViewModel>> staticBindingSet)
-        {
-            //staticBindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).ToExpression(() =>
-            //BindingService.MainGameViewModel.GameState == GameState.Structure ||
-            //BindingService.MainGameViewModel.GameState == GameState.Placement)
-            //    .OneWay();
-        }
-
-        private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
-        {
-
+            var bindingSet = this.CreateBindingSet<FixedToolbarView, FixedToolbarViewModel>();
+            //bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).To(vm => vm.IsVisible).OneWay();
+            bindingSet.Build();
         }
     }
 }

@@ -31,7 +31,17 @@ namespace Johnny.SimDungeon
         }
         private bool m_Selected;
 
+        public SelectableItemViewModel()
+        {
+         
+        }
+
         public SelectableItemViewModel(ICommand selectCommand)
+        {
+            this.m_SelectCommand = selectCommand;
+        }
+
+        public void SetSelectCommand(ICommand selectCommand)
         {
             this.m_SelectCommand = selectCommand;
         }

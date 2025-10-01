@@ -17,7 +17,7 @@ namespace Johnny.SimDungeon
 
         private Vector2Int m_LastDetectionCoord;
         private GridManager m_GridManager;
-        private InputManager m_InputManager;
+        private SelectionManager m_InputManager;
         private CellInfoViewModel m_SelectionViewModel;
 
         private void Start()
@@ -33,7 +33,7 @@ namespace Johnny.SimDungeon
             m_GridManager.OnGridObjectBoxPlacementFinalized += OnGridObjectBoxPlacementFinalized;
             m_GridManager.OnGridObjectBoxPlacementCancelled += OnGridObjectBoxPlacementCancelled;
 
-            m_InputManager = InputManager.Instance;
+            m_InputManager = SelectionManager.Instance;
             m_InputManager.floodFillAction.performed += FloodFillActionPerformed;
             m_InputManager.floodFillAction.canceled += FloodFillActionCanceled;
         }

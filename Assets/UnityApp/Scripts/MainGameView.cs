@@ -1,8 +1,11 @@
+using Loxodon.Framework.Binding;
 using Loxodon.Framework.Binding.Builder;
+using Loxodon.Framework.Contexts;
 using Loxodon.Framework.Interactivity;
 using Loxodon.Framework.Messaging;
 using Loxodon.Framework.Observables;
 using Loxodon.Framework.ViewModels;
+using Loxodon.Framework.Views;
 using Sirenix.OdinInspector;
 using SoulGames.EasyGridBuilderPro;
 using System;
@@ -21,6 +24,13 @@ namespace Johnny.SimDungeon
         Placement,
     }
 
+    public enum DestroyMode
+    {
+        None,
+        Edge,
+        Entity,
+    }
+
     public class MainGameViewModel : ViewModelBase
     {
         public GameState GameState
@@ -33,95 +43,62 @@ namespace Johnny.SimDungeon
             {
                 if (m_GameState != value)
                 {
-                    Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<GameState>(m_GameState, value, nameof(GameState)));
+                    Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<GameState>(m_GameState, value, nameof(this.GameState)));
                     Set(ref m_GameState, value);
-
                 }
             }
         }
         private GameState m_GameState = GameState.Default;
-    }
 
-
-    public class MainGameView : MonoBehaviour
-    {
-        public static MainGameView Instance
+        public GridMode GridMode
         {
             get
             {
-                if (s_Instance == null)
-                {
-                    s_Instance = FindFirstObjectByType<MainGameView>();
-                }
-                return s_Instance;
+                return m_GridMode;
             }
-
-        }
-        private static MainGameView s_Instance;
-
-        private GridManager m_GridManager;
-
-        protected void Start()
-        {
-            m_GridManager = GridManager.Instance;
-            m_GridManager.OnActiveEasyGridBuilderProChanged += OnActiveEasyGridBuilderProChanged;
-            m_GridManager.OnActiveGridModeChanged += OnActiveGridModeChanged;
-            m_GridManager.OnActiveBuildableSOChanged += OnActiveBuildableSOChanged;
-        }
-
-
-        private void OnActiveEasyGridBuilderProChanged(EasyGridBuilderPro activeEasyGridBuilderProSystem)
-        {
-            if (activeEasyGridBuilderProSystem != null)
+             set
             {
-                Debug.Log($"<GridType Changed> - {activeEasyGridBuilderProSystem.name.SetColor(Color.softYellow)}");
-            }
-            else
-            {
-                Debug.Log($"<GridType Changed> - {"NULL".SetColor(Color.softYellow)}");
+                Set(ref m_GridMode, value);
             }
         }
+        private GridMode m_GridMode;
+    }
 
-        private void OnActiveBuildableSOChanged(EasyGridBuilderPro easyGridBuilderPro, BuildableObjectSO buildableObjectSO)
+
+    public class MainGameView : UIView
+    {
+        [SerializeField] private CategoryObjectsPanelView m_CategoryObjectsPanelView;
+        [SerializeField] private FixedToolbarView m_FixedToolbarView;
+
+        private MainGameViewModel m_ViewModel;
+        //private BuildableObjectsPanelViewModel m_BuildableObjectsPanelViewModel;
+
+        protected override void Awake()
         {
-            if (buildableObjectSO != null)
-            {
-                Debug.Log($"<BuildableObjectSO Changed> - {easyGridBuilderPro.name} , { buildableObjectSO.objectName.SetColor(Color.blue)}");
-            }
-            else
-            {
-                Debug.Log($"<BuildableObjectSO Changed> - {easyGridBuilderPro.name} , {"NULL".SetColor(Color.blue)}");
-            }
+            m_ViewModel = new MainGameViewModel();
+            this.SetDataContext(m_ViewModel);
+
+            var serviceContainer = Context.GetApplicationContext().GetContainer();
+            serviceContainer.Register(m_ViewModel);
         }
 
-        private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
+        protected override void Start()
         {
-            Debug.Log($"<GridMode Changed> - {easyGridBuilderPro.name} , {gridMode.SetColor(Color.yellow)}");
-            //switch (gridMode)
-            //{
-            //    case GridMode.None:
-            //        ViewModel.IsLandExpandMode = false;
-            //        //ViewModel.IsDestroyMode = false;
-            //        break;
-            //    case GridMode.BuildMode:
-            //        //ViewModel.IsDestroyMode = false;
-            //        break;
-            //    case GridMode.DestroyMode:
-            //        ViewModel.IsLandExpandMode = false;
-            //        break;
-            //    case GridMode.SelectMode:
-            //        ViewModel.IsLandExpandMode = false;
-            //        //ViewModel.IsDestroyMode = false;
-            //        break;
-            //    case GridMode.MoveMode:
-            //        ViewModel.IsLandExpandMode = false;
-            //        break;
-            //    default:
-            //        break;
-            //}
+            //var serviceContainer = Context.GetApplicationContext().GetContainer();
+            //m_BuildableObjectsPanelViewModel = serviceContainer.Resolve<BuildableObjectsPanelViewModel>();
+
+            var bindingSet = this.CreateBindingSet<MainGameView, MainGameViewModel>();
+
+            bindingSet.Bind(this.m_CategoryObjectsPanelView).For(v => v.Visibility)
+                .ToExpression(vm => (vm.GameState == GameState.Structure || vm.GameState == GameState.Placement)
+                && vm.GridMode != GridMode.DestroyMode)
+                .OneWay();
+
+            bindingSet.Bind(this.m_FixedToolbarView).For(v => v.Visibility)
+                .ToExpression(vm => vm.GameState == GameState.Structure || vm.GameState == GameState.Placement)
+                .OneWay();
+
+            bindingSet.Build();
         }
-
-
-
     }
 }

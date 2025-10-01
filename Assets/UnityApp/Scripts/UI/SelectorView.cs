@@ -100,7 +100,7 @@ namespace Johnny.SimDungeon
         {
             var buildableObject = m_SelectionViewModel.SelectEntity.buildableObject;
             var gridType = SpawnManager.Instance.GetGridTypeFromEasyGridBuilderPro(buildableObject.GetOccupiedGridSystem());
-            SpawnManager.Instance.ChangeGridType(gridType);
+            SpawnManager.Instance.SetGridType(gridType);
             //m_GridManager.SetActiveGridModeInAllGrids(GridMode.MoveMode);
             m_BuildableObjectMover.StartMovingObject(buildableObject, true);
         }
