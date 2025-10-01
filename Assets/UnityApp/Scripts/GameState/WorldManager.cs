@@ -1,4 +1,5 @@
 using DungeonArchitect;
+using DungeonArchitect.Flow.Domains.Tilemap;
 using Loxodon.Framework.Contexts;
 using Sirenix.OdinInspector;
 using SoulGames.EasyGridBuilderPro;
@@ -111,6 +112,26 @@ namespace Johnny.SimDungeon
 
             ProgrammaticMeshManager.Instance.Init();
             SpawnManager.Instance.Init();
+
+            var disablerLargeCell = new HashSet<Vector2Int>();
+            foreach (var item in ElementManager_LargeCell.Instance.GetAllElements())
+            {
+                if (item.Data.CellType != FlowTilemapCellType.Floor)
+                {
+                    disablerLargeCell.Add(item.coord);
+                }
+            }
+            disablerController_LargeCell.AddDisablerCells(disablerLargeCell);
+
+            var disablerSmallCell = new HashSet<Vector2Int>();
+            foreach (var item in ElementManager_SmallCell.Instance.GetAllElements())
+            {
+                if (item.cellType != FlowTilemapSmallCellType.Floor)
+                {
+                    disablerSmallCell.Add(item.coord);
+                }
+            }
+            disablerController_SmallCell.AddDisablerCells(disablerSmallCell);
 
             GameStateManager.Instance.ChangeState(GameState.Default);
             m_IsWorldReady = true;
