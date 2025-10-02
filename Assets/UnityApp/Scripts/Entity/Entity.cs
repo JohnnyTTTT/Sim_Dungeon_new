@@ -35,7 +35,7 @@ namespace Johnny.SimDungeon
         {
             buildableObject = GetComponent<BuildableObject>();
             m_Outlinable = GetComponent<Outlinable>();
-            ShowOutline(false);
+            OutlineVisible(false);
             //            // Render both behind and in front
             //            outlinable.RenderStyle = RenderStyle.FrontBack;
 
@@ -87,7 +87,7 @@ namespace Johnny.SimDungeon
             //DungeonController.Instance.entities.Remove(this);
         }
 
-        public void ShowOutline(bool value)
+        public void OutlineVisible(bool value)
         {
             if (m_Outlinable != null)
             {

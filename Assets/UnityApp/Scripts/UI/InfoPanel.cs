@@ -7,6 +7,7 @@ using Loxodon.Framework.Contexts;
 using Loxodon.Framework.Views;
 using Loxodon.Framework.Binding;
 using SoulGames.EasyGridBuilderPro;
+using System;
 
 namespace Johnny.SimDungeon
 {
@@ -33,13 +34,16 @@ namespace Johnny.SimDungeon
             }
             set
             {
-                Set(ref m_SmallCell, value);
-                RaisePropertyChanged();
+                if (Set(ref m_SmallCell, value))
+                {
+                    RaisePropertyChanged(nameof(SmallCellTitle));
+                    RaisePropertyChanged(nameof(SmallCellCoordText));
+                }
+                //Set(ref m_SmallCell, value);
+                //RaisePropertyChanged();
             }
         }
         private Element_SmallCell m_SmallCell;
-
-
 
         public Region Region
         {
@@ -77,6 +81,22 @@ namespace Johnny.SimDungeon
             {
                 return Region != null  ? Region.name : "No Region";
             }
+        }
+
+        public CellInfoViewModel()
+        {
+            SelectionManager.Instance.OnSmallCellHover += OnSmallCellHover;
+            SelectionManager.Instance.OnLargeCellHover += OnLargeCellHover;
+        }
+
+        private void OnLargeCellHover(Element_LargeCell cell)
+        {
+            HoverLargeCell = cell;
+        }
+
+        private void OnSmallCellHover(Element_SmallCell cell)
+        {
+            HoverSmallCell = cell;
         }
     }
 

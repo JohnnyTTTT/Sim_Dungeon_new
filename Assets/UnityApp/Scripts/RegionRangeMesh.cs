@@ -21,7 +21,7 @@ namespace Johnny.SimDungeon
         private void BuildRegionMeshAtlas(HashSet<Vector2Int> regionCells, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs0)
         {
             var atlasUnit = AtlasUtility.GetAtlasUnitSize();
-            var cellSize = 2;
+            var cellSize = 1;
 
             foreach (var cellCoord in regionCells)
             {
@@ -75,7 +75,8 @@ namespace Johnny.SimDungeon
                 m_MeshFilter.sharedMesh = new Mesh();
             }
 
-            var regionCells = region.containedLargeCells.Select(x => x.coord).ToHashSet();
+            var regionCells = region.containedSmallCells.Select(x => x.coord).ToHashSet();
+
 
             var vertices = new List<Vector3>();
             var triangles = new List<int>();

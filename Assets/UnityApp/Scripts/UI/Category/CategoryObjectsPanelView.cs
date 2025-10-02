@@ -73,7 +73,7 @@ namespace Johnny.SimDungeon
         protected override void OnSelectedItemChanged(CategoryObjectItemViewModel old, CategoryObjectItemViewModel item)
         {
             SpawnManager.Instance.GridModeReset();
-            Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<CategoryObjectItemViewModel>(old, item, nameof(OnSelectedItemChanged)));
+            Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<CategoryObjectItemViewModel>(old, item, nameof(CategoryObjectItemViewModel)));
             //BindingService.BuildableObjectsPanelViewModel.ActiveCategoryObjectItemView = item;
         }
 

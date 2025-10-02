@@ -54,18 +54,17 @@ namespace Johnny.SimDungeon
         private IObjectPool<RegionRangeMesh> m_Pool;
         private Dictionary<Region, RegionRangeMesh> regionMeshs = new Dictionary<Region, RegionRangeMesh>();
 
-        public void Init()
-        {
-            Dispose();
+        private List<Region> m_CurrentShowRegions = new List<Region>();
 
+        public void Initialize()
+        {
             var factory = new RegionMeshFactory(this.m_RegionModelPrefab, this.m_RegionMeshContainer);
             m_Pool = new ObjectPool<RegionRangeMesh>(factory, 10, 20);
 
             ElementManager_Region.Instance.OnRegionCreate += OnRegionCreate;
-            ElementManager_Region.Instance.OnRegionDestroy += OnRegionDestroy;
-
-            var regions = ElementManager_Region.Instance.regionList;
-}
+            ElementManager_Region.Instance.OnRegionRemove += OnRegionDestroy;
+            SelectionManager.Instance.OnEntitySelected += OnEntitySelected;
+        }
 
         private void OnRegionCreate(Region region)
         {
@@ -73,7 +72,7 @@ namespace Johnny.SimDungeon
             regionRange.name = region.name;
             regionRange.UpdateRegionMap(region);
             regionMeshs.Add(region, regionRange);
-            ShowRegionRange(region, false);
+            HideRegionRange(region);
         }
 
         private void OnRegionDestroy(Region region)
@@ -83,12 +82,40 @@ namespace Johnny.SimDungeon
             freeable.Free();
         }
 
-        public void ShowRegionRange(Region region, bool value)
+        private void OnEntitySelected(Entity entity)
         {
-            regionMeshs[region].gameObject.SetActive(value);
+            if (entity != null)
+            {
+                var buildableObject = entity.buildableObject;
+                var positionList = buildableObject.GetObjectCellPositionList();
+                foreach (var position in positionList)
+                {
+                    var region = ElementManager_Region.Instance.GetRegionFromSmallCoord(position);
+                    if (!m_CurrentShowRegions.Contains(region))
+                    {
+                        ShowRegionRange(region);
+                        m_CurrentShowRegions.Add(region);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var region in m_CurrentShowRegions)
+                {
+                    HideRegionRange(region);
+                }
+            }
         }
 
+        public void HideRegionRange(Region region)
+        {
+            regionMeshs[region].gameObject.SetActive(false);
+        }
 
+        public void ShowRegionRange(Region region)
+        {
+            regionMeshs[region].gameObject.SetActive(true);
+        }
 
         public void Dispose()
         {

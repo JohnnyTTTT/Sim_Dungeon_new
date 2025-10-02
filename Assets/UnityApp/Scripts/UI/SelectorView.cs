@@ -20,8 +20,7 @@ namespace Johnny.SimDungeon
             }
             set
             {
-                Set(ref m_HoverEntity, value);
-                RaisePropertyChanged();
+                if (Set(ref m_HoverEntity, value));
             }
         }
         private Entity m_HoverEntity;
@@ -38,6 +37,22 @@ namespace Johnny.SimDungeon
             }
         }
         private Entity m_SelectEntity;
+
+        public SelectionViewModel()
+        {
+            SelectionManager.Instance.OnEntityHover += OnEntityHover;
+            SelectionManager.Instance.OnEntitySelected += OnEntitySelected;
+        }
+
+        private void OnEntitySelected(Entity obj)
+        {
+            SelectEntity = obj;
+        }
+
+        private void OnEntityHover(Entity obj)
+        {
+            HoverEntity = obj;
+        }
     }
 
     public class SelectorView : UIView

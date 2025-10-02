@@ -241,7 +241,21 @@ namespace Johnny.SimDungeon
 
         }
 
+        public void SetInputBuildableObjectClockwiseRotation(bool clockwise)
+        {
 
+            foreach (var easyGridBuilderPro in m_GridManager.GetEasyGridBuilderProSystemsList())
+            {
+                if (clockwise)
+                {
+                    easyGridBuilderPro.SetInputBuildableObjectClockwiseRotation(true);
+                }
+                else
+                {
+                    easyGridBuilderPro.SetInputBuildableObjectCounterClockwiseRotation(true);
+                }
+            }
+        }
 
 
 
@@ -289,10 +303,9 @@ namespace Johnny.SimDungeon
             m_CreatedBuildableEdgeObject.Clear();
         }
 
-        public bool IsSamllCoordInBounds(Vector2Int cellPosition)
-        {
-            return m_EasyGridBuilderPro_SmallCell.IsWithinActiveGridBounds(cellPosition);
-        }
+
+
+
 
         public GridType GetGridTypeFromEasyGridBuilderPro(EasyGridBuilderPro gridBuilderPro)
         {
@@ -636,6 +649,8 @@ namespace Johnny.SimDungeon
             }
             return false;
         }
+
+
         #endregion
     }
 }

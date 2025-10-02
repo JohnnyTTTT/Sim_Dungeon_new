@@ -37,7 +37,7 @@ namespace Johnny.SimDungeon
         private static ElementManager_Region s_Instance;
 
         public event Action<Region> OnRegionCreate;
-        public event Action<Region> OnRegionDestroy;
+        public event Action<Region> OnRegionRemove;
 
         private static int s_RegionID;
 
@@ -68,6 +68,7 @@ namespace Johnny.SimDungeon
             var region = new Region();
             region.Init($"{roomType} - {s_RegionID}", roomType);
             region.AddLargeCells(cells);
+            CollectSmallCells(region);
             regionList.Add(region);
             s_RegionID++;
             OnRegionCreate?.Invoke(region);
@@ -77,7 +78,7 @@ namespace Johnny.SimDungeon
         public void RemoveRegion(Region region)
         {
             regionList.Remove(region);
-            OnRegionDestroy?.Invoke(region);
+            OnRegionRemove?.Invoke(region);
         }
 
         public void RegisterSamallCoord(Vector2Int coord, Region region)
@@ -100,16 +101,12 @@ namespace Johnny.SimDungeon
             mapForLargeCoord[coord] = null;
         }
 
-        public void ShowRegionRangeFromSmallCoord(Vector2Int position, bool value)
-        {
-            var region = GetRegionFromSmallCoord(position);
-            m_RegionRangeMeshController.ShowRegionRange(region,value);
-        }
+
 
         public void Init()
         {
             regionList.Clear();
-            m_RegionRangeMeshController.Init();
+            m_RegionRangeMeshController.Initialize();
         }
 
         public void PostInit()
@@ -128,10 +125,6 @@ namespace Johnny.SimDungeon
                 }
             }
 
-            foreach (var region in regionList)
-            {
-                CollectSmallCells(region);
-            }
             //foreach (var item in ElementManager_SmallCell.Instance.GetAllElements())
             //{
             //    if (item.cellType ==  FlowTilemapSmallCellType.Floor) continue;
@@ -169,11 +162,12 @@ namespace Johnny.SimDungeon
         private void CollectSmallCells(Region region)
         {
             var position = region.containedLargeCells.First().worldPosition;
+                              
             var firstSmall = ElementManager_SmallCell.Instance.GetElement(position);
+            //region.AddSamllCell(firstSmall);
             var regionCells = FloodFill(firstSmall);
             if (regionCells != null && regionCells.Count > 0)
             {
-
 
                 foreach (var cell in regionCells)
                 {

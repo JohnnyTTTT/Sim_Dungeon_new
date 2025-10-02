@@ -16,7 +16,6 @@ using Loxodon.Framework.Binding;
 
 namespace Johnny.SimDungeon
 {
-
     public class BuildableObjectsPanelViewModel : ListViewModel<BuildableGenItemViewModel>
     {
         public Dictionary<BuildableObjectUICategorySO, ObservableList<BuildableGenItemViewModel>> AllItems;
@@ -32,19 +31,14 @@ namespace Johnny.SimDungeon
                 if (m_activeCategoryObjectItemView != value)
                 {
                     Set(ref m_activeCategoryObjectItemView, value);
+                    SetSelectedItem(null);
                     if (m_activeCategoryObjectItemView! != null)
                     {
-                        SetSelectedItem(null);
-                        //ClearItem();
                         if (AllItems.TryGetValue(m_activeCategoryObjectItemView.Data, out var datas))
                         {
                             Items = datas;
                             RaisePropertyChanged();
                         }
-                    }
-                    else
-                    {
-                        SetSelectedItem(null);
                     }
                 }
             }
@@ -74,7 +68,6 @@ namespace Johnny.SimDungeon
         private void OnCategoryObjectItemViewModelChanged(PropertyChangedMessage<CategoryObjectItemViewModel> message)
         {
             ActiveCategoryObjectItemView = message.NewValue;
-  
         }
 
         protected override void OnSelectedItemChanged(BuildableGenItemViewModel old, BuildableGenItemViewModel item)
@@ -83,6 +76,7 @@ namespace Johnny.SimDungeon
             {
                 SpawnManager.Instance.SetInputActiveBuildableObjectSO(item.Data.buildableObjectSO, item.Data.gridType);
             }
+            Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<BuildableGenItemViewModel>(old, item, nameof(BuildableGenItemViewModel)));
         }
 
         public void CreateItems(BuildableGenAssets buildableGenAssets)

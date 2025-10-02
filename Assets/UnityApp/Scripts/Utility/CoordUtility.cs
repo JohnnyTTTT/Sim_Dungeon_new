@@ -6,17 +6,12 @@ namespace Johnny.SimDungeon
 {
     public static class CoordUtility
     {
-        private static Vector3 Size1GridOriginPosition = new Vector3(-0.5f,0f, -0.5f);
-
-        public static object GetActiveGridCellPosition { get; internal set; }
+        private static Vector3 SmllGridOriginPosition = new Vector3(-0.5f, 0f, -0.5f);
 
         public static IntVector2 ToIntVector2(this Vector2Int coord)
         {
             return new IntVector2(coord.x, coord.y);
         }
-
-
-
         public static Vector2Int ToVector2Int(this IntVector2 coord)
         {
             return new Vector2Int(coord.x, coord.y);
@@ -31,7 +26,7 @@ namespace Johnny.SimDungeon
             }
             else
             {
-                return new Vector3(coord.x, 0, coord.y) + Size1GridOriginPosition;
+                return new Vector3(coord.x, 0, coord.y) + SmllGridOriginPosition;
             }
         }
 
@@ -47,9 +42,14 @@ namespace Johnny.SimDungeon
                 //    Mathf.FloorToInt((worldPosition - Size1GridOriginPosition).x),
                 //    Mathf.FloorToInt((worldPosition - Size1GridOriginPosition).z)));
                 return new Vector2Int(
-                    Mathf.FloorToInt((worldPosition - Size1GridOriginPosition).x),
-                    Mathf.FloorToInt((worldPosition - Size1GridOriginPosition).z));
+                    Mathf.FloorToInt((worldPosition - SmllGridOriginPosition).x),
+                    Mathf.FloorToInt((worldPosition - SmllGridOriginPosition).z));
             }
+        }
+
+        public static bool IsSamllCoordInBounds(Vector2Int cellPosition)
+        {
+            return SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell.IsWithinActiveGridBounds(cellPosition);
         }
 
 
@@ -63,5 +63,15 @@ namespace Johnny.SimDungeon
         {
             return DungeonController.Instance.dungeonModel.WorldPositionToTilemapCoord(coord).ToVector2Int();
         }
+
+        public static bool IsLargeCoordInBounds(Vector2Int cellPosition)
+        {
+            var x = cellPosition.x;
+            var z = cellPosition.y;
+            //var gridWidth = DungeonController.Instance.dungeonModel.Tilemap.Width;
+            //var gridLength = DungeonController.Instance.dungeonModel.Tilemap.Height;
+            return x >= 0 && z >= 0 && x < 80 && z < 80;
+        }
+
     }
 }
