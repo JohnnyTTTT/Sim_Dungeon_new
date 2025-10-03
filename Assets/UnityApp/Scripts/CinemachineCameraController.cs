@@ -60,7 +60,6 @@ namespace Johnny.SimDungeon
                 .SetEase(Ease.InOutSine)
                 .SetAutoKill(true)
                 .OnComplete(() => { lockInput = false; });
-            Debug.Log(endPosition);
         }
 
         private void Update()

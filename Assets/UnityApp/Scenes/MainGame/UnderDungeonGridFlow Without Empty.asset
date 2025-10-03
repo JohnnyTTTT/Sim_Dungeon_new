@@ -95,14 +95,14 @@ MonoBehaviour:
   bounds:
     serializedVersion: 2
     x: -749.5
-    y: -51.5
+    y: -50.5
     width: 147.19
     height: 46.53
   canBeDeleted: 1
   canBeSelected: 1
   canBeMoved: 1
-  selected: 0
-  zIndex: 393
+  selected: 1
+  zIndex: 412
   inputPins:
   - {fileID: 4303505362918073460}
   outputPins:
@@ -285,7 +285,7 @@ MonoBehaviour:
   indexCounter:
     index: 75
   topZIndex:
-    index: 395
+    index: 412
   nodes:
   - {fileID: 9181654878815998289}
   - {fileID: 8901431847947355109}
@@ -478,7 +478,7 @@ MonoBehaviour:
   canBeSelected: 1
   canBeMoved: 1
   selected: 0
-  zIndex: 364
+  zIndex: 398
   inputPins:
   - {fileID: 2482619483254560396}
   outputPins:
@@ -633,7 +633,8 @@ MonoBehaviour:
   maxFramesToProcess: 2000
   drawDebug: 0
   positionConstraintMode: 0
-  nodePositionConstraintScriptClassName: 
+  nodePositionConstraintScriptClassName: Johnny.SimDungeon.PathStartConstraints,
+    Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -680,10 +681,12 @@ MonoBehaviour:
     avoidPlacingNextToDoors: 1
     placementScriptClass: 
     fallbackToRandomPlacement: 1
-  positionConstraintMode: 0
-  startNodePositionConstraints: []
+  positionConstraintMode: 1
+  startNodePositionConstraints:
+  - {x: 0, y: 3}
   endNodePositionConstraints: []
-  nodePositionConstraintScriptClassName: 
+  nodePositionConstraintScriptClassName: Johnny.SimDungeon.PathStartConstraints,
+    Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   fixedStartRoomSize: 0
   fixedEndRoomSize: 0
 --- !u!114 &954846782542475733
@@ -1155,7 +1158,7 @@ MonoBehaviour:
   canBeSelected: 1
   canBeMoved: 1
   selected: 0
-  zIndex: 395
+  zIndex: 407
   inputPins:
   - {fileID: 954846782542475733}
   outputPins:
@@ -1393,7 +1396,7 @@ MonoBehaviour:
   canBeSelected: 1
   canBeMoved: 1
   selected: 0
-  zIndex: 373
+  zIndex: 410
   inputPins:
   - {fileID: 8560447184837783066}
   outputPins:

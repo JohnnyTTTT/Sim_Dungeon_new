@@ -1,0 +1,401 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd03c9c24b514e5ab076ede11d16da15, type: 3}
+  m_Name: Test UtilityBoard
+  m_EditorClassIdentifier: 
+  m_Nodes:
+  - rid: 2641057121401045133
+  - rid: 2641057122056143232
+  - rid: 3657390277578457144
+  - rid: 3657390277578457713
+  - rid: 3657390277578457728
+  m_Data:
+    m_List:
+    - rid: 2641057121401045139
+    - rid: 2641057121401045141
+    - rid: 2641057121401045143
+  m_Minimum:
+    m_Property:
+      rid: 2641057121401045131
+  m_Maximum:
+    m_Property:
+      rid: 2641057122056143045
+  references:
+    version: 2
+    RefIds:
+    - rid: 2641057121401045131
+      type: {class: GetDecimalDecimal, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data:
+        m_Value: 0
+    - rid: 2641057121401045133
+      type: {class: NodeUtilityBoardRoot, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Id:
+          m_String: 8310e39d-cda5-492c-9095-88f6f669c318
+        m_Position: {x: 0, y: 0}
+        m_Ports:
+          m_Inputs: []
+          m_Outputs: []
+        m_Score:
+          m_Value:
+            m_Property:
+              rid: 2641057121401045134
+          m_Curve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: 0
+              outSlope: -2.5
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0.1
+            - serializedVersion: 3
+              time: 1
+              value: 0.1
+              inSlope: -0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0.5
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+        m_Conditions:
+          m_Conditions:
+            m_Conditions: []
+    - rid: 2641057121401045134
+      type: {class: GetDecimalParameter, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Processor:
+          m_Property:
+            rid: 2641057121401045135
+        m_Name:
+          m_String: 
+    - rid: 2641057121401045135
+      type: {class: GetGameObjectSelf, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data: 
+    - rid: 2641057121401045139
+      type: {class: Parameter, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Breakpoint: 0
+        m_IsEnabled: 1
+        m_Value:
+          rid: 2641057121401045145
+        m_Name: energy
+    - rid: 2641057121401045141
+      type: {class: Parameter, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Breakpoint: 0
+        m_IsEnabled: 1
+        m_Value:
+          rid: 2641057121401045146
+        m_Name: thirst
+    - rid: 2641057121401045143
+      type: {class: Parameter, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Breakpoint: 0
+        m_IsEnabled: 1
+        m_Value:
+          rid: 2641057121401045147
+        m_Name: wealth
+    - rid: 2641057121401045145
+      type: {class: ValueNumber, ns: GameCreator.Runtime.Variables, asm: GameCreator.Runtime.Core}
+      data:
+        m_Breakpoint: 0
+        m_IsEnabled: 1
+        m_Value: 0
+    - rid: 2641057121401045146
+      type: {class: ValueNumber, ns: GameCreator.Runtime.Variables, asm: GameCreator.Runtime.Core}
+      data:
+        m_Breakpoint: 0
+        m_IsEnabled: 1
+        m_Value: 0
+    - rid: 2641057121401045147
+      type: {class: ValueNumber, ns: GameCreator.Runtime.Variables, asm: GameCreator.Runtime.Core}
+      data:
+        m_Breakpoint: 0
+        m_IsEnabled: 1
+        m_Value: 0
+    - rid: 2641057122056143045
+      type: {class: GetDecimalDecimal, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data:
+        m_Value: 100
+    - rid: 2641057122056143232
+      type: {class: NodeUtilityBoardTask, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Id:
+          m_String: 786a387d-e397-4822-9d96-972e13cc80e3
+        m_Position: {x: -329, y: 3.5586777}
+        m_Ports:
+          m_Inputs: []
+          m_Outputs: []
+        m_Score:
+          m_Value:
+            m_Property:
+              rid: 3657390276252009070
+          m_Curve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+        m_Conditions:
+          m_Conditions:
+            m_Conditions: []
+        m_Name: Idle
+        m_OnExit:
+          m_Instructions:
+            m_Instructions: []
+        m_Instructions:
+          m_Instructions:
+            m_Instructions:
+            - rid: 3657390276252009113
+    - rid: 3657390276252009070
+      type: {class: GetDecimalStatValue, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
+      data:
+        m_Traits:
+          m_Property:
+            rid: 3657390276252009073
+        m_Stat:
+          m_Property:
+            rid: 3657390276252009072
+    - rid: 3657390276252009072
+      type: {class: GetStatInstance, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
+      data:
+        m_Stat: {fileID: 11400000, guid: 400a3043e7a741846bb28866417ef2b1, type: 2}
+    - rid: 3657390276252009073
+      type: {class: GetGameObjectSelf, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data: 
+    - rid: 3657390276252009113
+      type: {class: InstructionCommonDebugText, ns: GameCreator.Runtime.VisualScripting, asm: GameCreator.Runtime.Core}
+      data:
+        m_Breakpoint: 0
+        m_IsEnabled: 1
+        m_Message:
+          m_Property:
+            rid: 3657390276252009114
+    - rid: 3657390276252009114
+      type: {class: GetStringString, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data:
+        m_Value: Idle
+    - rid: 3657390277578457144
+      type: {class: NodeUtilityBoardTask, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Id:
+          m_String: 96d18d13-cf23-47a2-b200-7ecd37ced217
+        m_Position: {x: 323.3714, y: 5.1738625}
+        m_Ports:
+          m_Inputs: []
+          m_Outputs: []
+        m_Score:
+          m_Value:
+            m_Property:
+              rid: 3657390277578457147
+          m_Curve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: -1.5078195
+              outSlope: -1.5078195
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0.33333334
+              outWeight: 0.04840595
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: -0.5412141
+              outSlope: -0.5412141
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0.07379556
+              outWeight: 0.33333334
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+        m_Conditions:
+          m_Conditions:
+            m_Conditions: []
+        m_Name: Sleep
+        m_OnExit:
+          m_Instructions:
+            m_Instructions: []
+        m_Instructions:
+          m_Instructions:
+            m_Instructions:
+            - rid: 3657390277578457148
+    - rid: 3657390277578457147
+      type: {class: GetDecimalAttributeCurrentValue, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
+      data:
+        m_Traits:
+          m_Property:
+            rid: 3657390277578457149
+        m_Attribute:
+          m_Property:
+            rid: 3657390277578457150
+    - rid: 3657390277578457148
+      type: {class: InstructionCommonDebugText, ns: GameCreator.Runtime.VisualScripting, asm: GameCreator.Runtime.Core}
+      data:
+        m_Breakpoint: 0
+        m_IsEnabled: 1
+        m_Message:
+          m_Property:
+            rid: 3657390277578457151
+    - rid: 3657390277578457149
+      type: {class: GetGameObjectSelf, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data: 
+    - rid: 3657390277578457150
+      type: {class: GetAttributeInstance, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
+      data:
+        m_Attribute: {fileID: 11400000, guid: d026d987b72d9f349a3c371d8b26213e, type: 2}
+    - rid: 3657390277578457151
+      type: {class: GetStringString, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data:
+        m_Value: Eat
+    - rid: 3657390277578457713
+      type: {class: NodeUtilityBoardSubgraph, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Id:
+          m_String: 476c3830-a284-4fbf-8ec8-ecbb89a3ba1b
+        m_Position: {x: -8, y: 1}
+        m_Ports:
+          m_Inputs: []
+          m_Outputs: []
+        m_Score:
+          m_Value:
+            m_Property:
+              rid: 3657390277578457716
+          m_Curve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 1
+              inSlope: Infinity
+              outSlope: -4.396695
+              tangentMode: 1
+              weightedMode: 3
+              inWeight: 0
+              outWeight: 0.22744356
+            - serializedVersion: 3
+              time: 1
+              value: 0
+              inSlope: -0.07166135
+              outSlope: -0.07166135
+              tangentMode: 0
+              weightedMode: 1
+              inWeight: 0.7942507
+              outWeight: 0.33333334
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+        m_Conditions:
+          m_Conditions:
+            m_Conditions: []
+        m_Graph: {fileID: 11400000, guid: e4ba52345f3a7dc49ba13d979ef45716, type: 2}
+    - rid: 3657390277578457716
+      type: {class: GetDecimalAttributeCurrentValue, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
+      data:
+        m_Traits:
+          m_Property:
+            rid: 3657390277578457719
+        m_Attribute:
+          m_Property:
+            rid: 3657390277578457718
+    - rid: 3657390277578457718
+      type: {class: GetAttributeInstance, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
+      data:
+        m_Attribute: {fileID: 11400000, guid: 69f1cb97e9413994eb25003d17673d64, type: 2}
+    - rid: 3657390277578457719
+      type: {class: GetGameObjectSelf, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data: 
+    - rid: 3657390277578457728
+      type: {class: NodeUtilityBoardSubgraph, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
+      data:
+        m_Id:
+          m_String: 0c9b06e1-dd54-425b-9b91-8218b20c2ed9
+        m_Position: {x: -328.509, y: 284.40363}
+        m_Ports:
+          m_Inputs: []
+          m_Outputs: []
+        m_Score:
+          m_Value:
+            m_Property:
+              rid: 3657390277578457731
+          m_Curve:
+            serializedVersion: 2
+            m_Curve:
+            - serializedVersion: 3
+              time: 0
+              value: 0
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            - serializedVersion: 3
+              time: 1
+              value: 1
+              inSlope: 0
+              outSlope: 0
+              tangentMode: 0
+              weightedMode: 0
+              inWeight: 0
+              outWeight: 0
+            m_PreInfinity: 2
+            m_PostInfinity: 2
+            m_RotationOrder: 4
+        m_Conditions:
+          m_Conditions:
+            m_Conditions: []
+        m_Graph: {fileID: 0}
+    - rid: 3657390277578457731
+      type: {class: GetDecimalStatValue, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
+      data:
+        m_Traits:
+          m_Property:
+            rid: 3657390277578457734
+        m_Stat:
+          m_Property:
+            rid: 3657390277578457733
+    - rid: 3657390277578457733
+      type: {class: GetStatInstance, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
+      data:
+        m_Stat: {fileID: 11400000, guid: 400a3043e7a741846bb28866417ef2b1, type: 2}
+    - rid: 3657390277578457734
+      type: {class: GetGameObjectSelf, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
+      data: 

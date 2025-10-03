@@ -10,6 +10,13 @@ using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
+    public enum DevOptions
+    {
+        None,
+        Nothing,
+        NoData,
+    }
+
     public enum DevDungenCreateMode
     {
         Ground,
@@ -31,7 +38,11 @@ namespace Johnny.SimDungeon
 
         }
         private static WorldManager s_Instance;
+
+        public static event Action OnWorldCreated;
+
         [Title("Dev")]
+        public DevOptions devOption;
         public DevDungenCreateMode dungenCreateMode;
 
         [Title("Grid System")]
@@ -43,13 +54,19 @@ namespace Johnny.SimDungeon
 
         public bool m_IsLargeGridReady;
         public bool m_IsSmallGridReady;
-        public bool m_IsDeogunReady;
+        public bool m_IsGroundDeogunReady;
         public bool m_IsWorldReady;
         private MainGameViewModel m_MainGameViewModel;
 
         private void Start()
         {
-            DungeonController.Instance.OnPostDungeonBuildAction += OnPostDungeonBuild;
+            if (devOption == DevOptions.Nothing)
+            {
+                OnWorldCreated?.Invoke();
+                return;
+            } 
+            DungeonBuildListener.OnPostDungeonBuildAction += OnPostDungeonBuildAction;
+            //DungeonController.Instance.OnPostDungeonBuildAction += OnPostDungeonBuild;
             EasyGridBuilderPro.OnGridSystemCreated += OnGridSystemCreated;
             var serviceContainer = Context.GetApplicationContext().GetContainer();
             m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
@@ -59,7 +76,7 @@ namespace Johnny.SimDungeon
                     StartCoroutine(CreateGroundWorld());
                     break;
                 case DevDungenCreateMode.Underground:
-                    //StartCoroutine(CreateUndergroundWorld());
+                    StartCoroutine(CreateUndergroundWorld());
                     break;
                 case DevDungenCreateMode.Both:
                     break;
@@ -68,9 +85,12 @@ namespace Johnny.SimDungeon
             }
         }
 
-        private void OnPostDungeonBuild()
+        private void OnPostDungeonBuildAction(Dungeon dungeon, DungeonModel dungeonModel, LevelMarkerList sockets)
         {
-            m_IsDeogunReady = true;
+            if (dungeon == DungeonController.Instance.dungeon)
+            {
+                m_IsGroundDeogunReady = true;
+            }
         }
 
         private void OnGridSystemCreated(EasyGridBuilderPro easyGridBuilderPro)
@@ -87,6 +107,26 @@ namespace Johnny.SimDungeon
                 var gridSmall = easyGridBuilderPro.GetActiveGrid() as GridXZ;
                 smallTilemapSize = new Vector2Int(gridSmall.GetWidth(), gridSmall.GetLength());
             }
+        }
+
+
+        private IEnumerator CreateUndergroundWorld()
+        {
+
+            yield return new WaitForEndOfFrame();
+            RandomUtility.SetSeed((int)DungeonController.Instance.undergroundDungeon.Config.Seed);
+            GameStateManager.Instance.Initialize();
+            while (!m_IsLargeGridReady || !m_IsSmallGridReady)
+            {
+                yield return null;
+            }
+            Debug.Log("[-----System-----] : EGB 加载完毕");
+            yield return new WaitForEndOfFrame();
+            DungeonController.Instance.DestroyUndergroundDungeon();
+
+            yield return new WaitForEndOfFrame();
+            DungeonController.Instance.BuildUndergroundDungeon();
+
         }
 
         private IEnumerator CreateGroundWorld()
@@ -109,7 +149,7 @@ namespace Johnny.SimDungeon
             yield return new WaitForEndOfFrame();
             DungeonController.Instance.BuildGroundDungeon();
 
-            while (!m_IsDeogunReady)
+            while (!m_IsGroundDeogunReady)
             {
                 yield return null;
             }
@@ -153,6 +193,7 @@ namespace Johnny.SimDungeon
 
             GameStateManager.Instance.ChangeState(GameState.Default);
             m_IsWorldReady = true;
+            OnWorldCreated?.Invoke();
             Debug.Log("[-----System-----] : 世界创建完毕");
         }
 

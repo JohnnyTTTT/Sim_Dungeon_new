@@ -64,7 +64,7 @@ namespace Johnny.SimDungeon
 
         public void BuildUndergroundDungeon()
         {
-            undergroundDungeon.Build(m_RuntimeSimSceneObjectInstantiator);
+            undergroundDungeon.Build(new RuntimeSimSceneObjectInstantiator(new Vector3(0f, -50f, 0f)));
         }
 
         public void DestroyUndergroundDungeon()
@@ -91,9 +91,11 @@ namespace Johnny.SimDungeon
         {
         }
 
+
         public override void OnDungeonMarkersEmitted(Dungeon dungeon, DungeonModel model, LevelMarkerList markers)
         {
         }
+        
 
         public override void OnPostDungeonBuild(Dungeon dungeon, DungeonModel model)
         {
