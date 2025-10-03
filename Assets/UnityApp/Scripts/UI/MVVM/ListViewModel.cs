@@ -7,24 +7,24 @@ using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
-    public class ListViewModel<T> : ViewModelBase where T : SelectableItemViewModel
+    public class ListViewModel : ViewModelBase 
     {
-        protected SimpleCommand<T> ItemSelectCommand;
+        protected SimpleCommand<SelectableItemViewModel> ItemSelectCommand;
 
-        public ObservableList<T> Items
+        public ObservableList<SelectableItemViewModel> Items
         {
             get { return this.m_Items; }
             set { this.Set(ref m_Items, value); }
         }
-        private ObservableList<T> m_Items;
+        private ObservableList<SelectableItemViewModel> m_Items;
 
         public ListViewModel(IMessenger messenger) : base( messenger)
         {
-            Items = new ObservableList<T>();
-            ItemSelectCommand = new SimpleCommand<T>(OnItemSelect);
+            Items = new ObservableList<SelectableItemViewModel>();
+            ItemSelectCommand = new SimpleCommand<SelectableItemViewModel>(OnItemSelect);
         }
 
-        public T SelectedItem
+        protected SelectableItemViewModel SelectedItem
         {
             get
             {
@@ -35,9 +35,9 @@ namespace Johnny.SimDungeon
                 Set(ref m_SelectedItem, value);
             }
         }
-        private T m_SelectedItem;
+        private SelectableItemViewModel m_SelectedItem;
 
-        private void OnItemSelect(T item)
+        private void OnItemSelect(SelectableItemViewModel item)
         {
             if (SelectedItem == item)
             {
@@ -49,7 +49,7 @@ namespace Johnny.SimDungeon
             }
         }
 
-        public void SetSelectedItem(T item)
+        public void SetSelectedItem(SelectableItemViewModel item)
         {
             foreach (var i in m_Items)
             {
@@ -68,7 +68,12 @@ namespace Johnny.SimDungeon
             //}
         }
 
-        protected virtual void OnSelectedItemChanged(T old, T item)
+        public SelectableItemViewModel GetSelectedItem()
+        {
+            return SelectedItem;
+        }
+
+        protected virtual void OnSelectedItemChanged(SelectableItemViewModel old, SelectableItemViewModel item)
         {
 
         }
@@ -82,11 +87,11 @@ namespace Johnny.SimDungeon
             SetSelectedItem(null);
         }
 
-        public void AddItem(T item)
+        public void AddItemAndInjectISelectCommand(SelectableItemViewModel item)
         {
-            Debug.Log(item);
-            item.SetSelectCommand(ItemSelectCommand) ;
             Items.Add(item);
+            item.SetCommand(ItemSelectCommand);
         }
+
     }
 }

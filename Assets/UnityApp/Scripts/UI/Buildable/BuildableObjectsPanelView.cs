@@ -32,7 +32,7 @@ namespace Johnny.SimDungeon
         }
     }
 
-    public class BuildableObjectsPanelViewModel : ListViewModel<SelectableItemViewModel>
+    public class BuildableObjectsPanelViewModel : ListViewModel
     {
         public Dictionary<BuildableObjectUICategorySO, ObservableList<SelectableItemViewModel>> AllItems;
 
@@ -102,8 +102,6 @@ namespace Johnny.SimDungeon
             var newVM = item as BuildableGenItemViewModel;
             if (item != null)
             {
-                Debug.Log(newVM.Data.buildableObjectSO);
-                Debug.Log(newVM.Data.gridType);
                 SpawnManager.Instance.SetInputActiveBuildableObjectSO(newVM.Data.buildableObjectSO, newVM.Data.gridType);
             }
             Messenger.Publish(new PropertyChangedMessage<BuildableGenItemViewModel>(oldVM, newVM, nameof(BuildableGenItemViewModel)));
@@ -125,14 +123,11 @@ namespace Johnny.SimDungeon
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (m_Subscription != null)
             {
-                if (m_Subscription != null)
-                {
-                    m_Subscription.Dispose();
-                    m_Subscription = null;
-                    AllItems?.Clear();
-                }
+                m_Subscription.Dispose();
+                m_Subscription = null;
+                AllItems?.Clear();
             }
         }
     }
@@ -165,6 +160,10 @@ namespace Johnny.SimDungeon
             bindingSet.Build();
 
             //GridManager.Instance.OnActiveGridModeChanged += OnActiveGridModeChanged;
+        }
+        protected override void OnDestroy()
+        {
+            this.ClearAllBindings();
         }
 
     }

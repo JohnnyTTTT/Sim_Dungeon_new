@@ -8,7 +8,7 @@ public class OnEnableTest : MonoBehaviour
     {
         if (OnEnableLog)
         {
-            Debug.Log("OnEnable Test ", gameObject);
+            Debug.Log("OnEnable Test : "+name, gameObject);
         }
 
     }
@@ -16,7 +16,7 @@ public class OnEnableTest : MonoBehaviour
     {
         if (OnDisableLog)
         {
-            Debug.Log("OnDisable Test ", gameObject);
+            Debug.Log("OnDisable Test : " + name, gameObject);
         }
     }
 }

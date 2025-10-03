@@ -100,6 +100,7 @@ namespace Johnny.SimDungeon
         private BuildableObjectDestroyer m_BuildableObjectDestroyer;
         private BuildableObjectSelector m_BuildableObjectSelector;
         private BuildableObjectMover m_BuildableObjectMover;
+        private GridBuiltObjectsManager m_GridBuiltObjectsManager;
         private BuildableObjectsPanelViewModel m_BuildableObjectsPanelViewModel;
         private MainGameViewModel m_MainGameViewModel;
 
@@ -132,7 +133,10 @@ namespace Johnny.SimDungeon
             {
                 m_BuildableObjectSelector = buildableObjectSelector;
             }
-            //m_GridManager.GetActiveEasyGridBuilderPro().GetActiveGridCellData
+            if (m_GridManager.TryGetGridBuiltObjectsManager(out var gridBuiltObjectsManager))
+            {
+                m_GridBuiltObjectsManager = gridBuiltObjectsManager;
+            }
         }
 
         public void Init()
@@ -198,7 +202,7 @@ namespace Johnny.SimDungeon
 
         public void GridModeReset()
         {
-            if (m_BuildableObjectsPanelViewModel != null && m_BuildableObjectsPanelViewModel.SelectedItem != null)
+            if (m_BuildableObjectsPanelViewModel != null && m_BuildableObjectsPanelViewModel.GetSelectedItem() != null)
             {
                 m_BuildableObjectsPanelViewModel.SetSelectedItem(null);
             }
@@ -216,6 +220,7 @@ namespace Johnny.SimDungeon
         public void SetActiveGridModeInAllGrids(GridMode gridMode)
         {
             m_GridManager.SetActiveGridModeInAllGrids(gridMode, false);
+            Debug.Log($"<GridMode Switched> - {gridMode.SetColor(Color.yellow)}");
         }
 
         public void SetDestroyModeInAllGrids(DestroyMode mode)
@@ -229,11 +234,13 @@ namespace Johnny.SimDungeon
                         break;
                     case DestroyMode.Edge:
                         m_BuildableObjectDestroyer.SetInputDestructableBuildableObjectType(DestructableBuildableObjectType.BuildableEdgeObject);
+                        SetGridType(GridType.Large);
                         SetActiveGridModeInAllGrids(GridMode.DestroyMode);
                         break;
                     case DestroyMode.Entity:
                         m_BuildableObjectDestroyer.SetInputDestructableBuildableObjectType(DestructableBuildableObjectType.BuildableGridObject);
                         SetActiveGridModeInAllGrids(GridMode.DestroyMode);
+                        SetGridType(GridType.Small);
                         break;
                     default:
                         break;
@@ -271,6 +278,8 @@ namespace Johnny.SimDungeon
                         GridManager.Instance.SetActiveGridSystem(small);
                         break;
                 }
+                GridType = type;
+                Debug.Log($"<GridType Switched> - {GridType.SetColor(Color.green)}");
             }
         }
 
@@ -279,6 +288,15 @@ namespace Johnny.SimDungeon
 
         private void OnDestroy()
         {
+            if (m_GridManager.TryGetGridBuiltObjectsManager(out var gridBuiltObjectsManager))
+            {
+                var objs = gridBuiltObjectsManager.GetBuiltObjectsList();
+                for (int i = objs.Count - 1; i >= 0; i--)
+                {
+                    DestroyImmediate(objs[i].gameObject);
+                }
+
+            }
             spwanedEntityForEditor.Clear();
             m_CandidateAreaExpandProxies.Clear();
             m_CreatedBuildableEdgeObject.Clear();

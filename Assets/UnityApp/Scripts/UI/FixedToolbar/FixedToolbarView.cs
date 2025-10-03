@@ -13,34 +13,56 @@ using static UnityEditor.Profiling.HierarchyFrameDataView;
 
 namespace Johnny.SimDungeon
 {
-    public class FixedToolbarViewModel : ListViewModel<DestroyToolViewModel>
+    [System.Serializable]
+    public class DestroyToolViewModelProxy
     {
-        private IDisposable m_Subscription;
+        public DestroyMode destroyMode;
+        public Color background;
+        public Sprite icon;
+        public string description;
+    }
 
-        public bool IsVisible
+
+    public class FixedToolbarViewModel : ListViewModel
+    {
+        public static string BeforeFixedToolbarSelectedItemChange = "BeforeFixedToolbarSelectedItemChange";
+        public static string AfterFixedToolbarSelectedItemChange = "BeforeFixedToolbarSelectedItemChange";
+
+        public bool Visibility
         {
             get
             {
-                return m_IsVisible;
+                return m_Visibility;
             }
             set
             {
-                Set(ref m_IsVisible, value);
+                Set(ref m_Visibility, value);
             }
         }
-        private bool m_IsVisible;
+        private bool m_Visibility;
+
+        private IDisposable m_Subscription;
+        private IDisposable m_CategorySubscription;
 
         public FixedToolbarViewModel(IMessenger messenger) : base(messenger)
         {
             m_Subscription = Messenger.Subscribe<PropertyChangedMessage<GameState>>(OnGameStateChanged);
-            //m_Subscription = Messenger.Subscribe<PropertyChangedMessage<CategoryObjectItemViewModel>>(OnCategoryObjectItemViewModelChanged);
+            m_CategorySubscription = Messenger.Subscribe<PropertyChangedMessage<CategoryObjectItemViewModel>>(OnCategoryObjectItemViewModelChanged);
         }
 
-        //protected override void OnSelectedItemChanged(SelectableItemViewModel old, SelectableItemViewModel item)
-        //{
-        //    Debug.Log(Items.Count);
-        //    //Messenger.Publish(nameof(FixedToolbarViewModel), new PropertyChangedMessage<SelectableItemViewModel>(old, item, nameof(SelectableItemViewModel)));
-        //}
+        protected override void OnSelectedItemChanged(SelectableItemViewModel oldItem, SelectableItemViewModel newItem)
+        {
+            Messenger.Publish(BeforeFixedToolbarSelectedItemChange, new PropertyChangedMessage<SelectableItemViewModel>(oldItem, newItem, nameof(newItem)));
+            if (oldItem != null)
+            {
+                oldItem.OnSelectedChanged(false);
+            }
+            if (newItem != null)
+            {
+                newItem.OnSelectedChanged(true);
+            }
+            //Messenger.Publish(AfterFixedToolbarSelectedItemChange, new PropertyChangedMessage<SelectableItemViewModel>(oldItem, newItem, nameof(newItem)));
+        }
 
         private void OnCategoryObjectItemViewModelChanged(PropertyChangedMessage<CategoryObjectItemViewModel> message)
         {
@@ -53,7 +75,22 @@ namespace Johnny.SimDungeon
         private void OnGameStateChanged(PropertyChangedMessage<GameState> message)
         {
             var value = message.NewValue;
-            IsVisible = value == GameState.Structure || value == GameState.Placement;
+            Visibility = value == GameState.Structure || value == GameState.Placement;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (m_Subscription != null)
+            {
+                m_Subscription.Dispose();
+                m_Subscription = null;
+            }
+            if (m_CategorySubscription != null)
+            {
+                m_CategorySubscription.Dispose();
+                m_CategorySubscription = null;
+            }
+            Items?.Clear();
         }
     }
 
@@ -62,48 +99,37 @@ namespace Johnny.SimDungeon
         [SerializeField] private UIViewPositionAnimation m_AnimationPanel;
         [SerializeField] private ListView m_ListView;
 
-        //[SerializeField] private DestroyToolItemView m_DestroyEdgeToolItemView;
-        //[SerializeField] private DestroyToolItemView m_DestroyEntityToolItemView;
+        [SerializeField] private DestroyToolView m_DestroyEdgeToolItemView;
+        [SerializeField] private DestroyToolView m_DestroyEntityToolItemView;
 
         private FixedToolbarViewModel m_ViewModel;
 
         protected override void Awake()
         {
             m_ViewModel = new FixedToolbarViewModel(Messenger.Default);
-
             this.SetDataContext(m_ViewModel);
-
-
         }
 
         protected override void Start()
         {
-            StartCoroutine(LoadWorld());
+            m_ViewModel.AddItemAndInjectISelectCommand(m_DestroyEdgeToolItemView.GetDataContext() as SelectableItemViewModel);
+            m_ViewModel.AddItemAndInjectISelectCommand(m_DestroyEntityToolItemView.GetDataContext() as SelectableItemViewModel);
+
+
             var bindingSet = this.CreateBindingSet<FixedToolbarView, FixedToolbarViewModel>();
-            //bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
+            bindingSet.Bind(this).For(v => v.Visibility).To(vm => vm.Visibility).OneWay();
             //bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
             bindingSet.Build();
         }
-        private IEnumerator LoadWorld()
+
+        public void AddViewModel(SelectableItemViewModel item)
         {
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
-            //yield return new WaitForEndOfFrame();
-            //yield return new WaitForEndOfFrame();
-            //yield return new WaitForEndOfFrame();
-            ////var a = m_DestroyEntityToolItemView.CreateDataContext();
-            ////var b = m_DestroyEdgeToolItemView.CreateDataContext();
-            //Debug.Log(a.GetHashCode());
-            //yield return new WaitForEndOfFrame();
-            ////m_ViewModel.AddItem(a);
-            ////m_ViewModel.AddItem(b);
-            //Debug.Log(m_ViewModel.Items.Count);
-            //yield return new WaitForEndOfFrame();
-            //Debug.Log(m_DestroyEntityToolItemView.GetDataContext().GetHashCode());
-            ////((FixedToolbarViewModel)this.GetDataContext()).Items.Add(new DestroyToolViewModel(DestroyMode.Edge));
+
+        }
+
+        protected override void OnDestroy()
+        {
+            this.ClearAllBindings();
         }
     }
 }

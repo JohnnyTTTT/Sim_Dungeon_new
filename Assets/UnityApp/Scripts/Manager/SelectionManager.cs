@@ -43,7 +43,7 @@ namespace Johnny.SimDungeon
         public InputAction selectAction;
 
 
-        private bool isPlacing;
+        private bool m_AllowSelection;
         private GridManager m_GridManager;
 
         public Element_LargeCell HoverLargeCell
@@ -74,7 +74,7 @@ namespace Johnny.SimDungeon
             }
         }
         private Element_SmallCell m_HoverSmallCell;
-        private Vector2Int m_HoverSmallCoord = new Vector2Int(-999,-999);
+        private Vector2Int m_HoverSmallCoord = new Vector2Int(-999, -999);
 
 
         public Entity HoverEntity
@@ -148,17 +148,12 @@ namespace Johnny.SimDungeon
         private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
         {
             SelectEntity = null;
-            isPlacing = gridMode == GridMode.BuildMode;
+            m_AllowSelection = gridMode == GridMode.None;
         }
 
         private void Update()
         {
-
-            if (isPlacing)
-            {
-
-            }
-            else
+            if (m_AllowSelection)
             {
                 if (!EventSystem.current.IsPointerOverGameObject())
                 {

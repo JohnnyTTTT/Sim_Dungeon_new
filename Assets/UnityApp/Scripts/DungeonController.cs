@@ -34,30 +34,55 @@ namespace Johnny.SimDungeon
 
         public event Action OnPostDungeonBuildAction;
 
+        [Title("Ground")]
         public Dungeon dungeon;
         public GridFlowDungeonConfig dungeonConfig;
         public GridFlowDungeonModel dungeonModel;
         public GridFlowDungeonQuery gridFlowDungeonQuery;
 
+        [Title("Underground")]
+        public Dungeon undergroundDungeon;
+        public GridFlowDungeonConfig undergroundDungeonConfig;
+        public GridFlowDungeonModel undergroundDungeonModel;
+        public GridFlowDungeonQuery undergroundGridFlowDungeonQuery;
+
+
         private RuntimeSimSceneObjectInstantiator m_RuntimeSimSceneObjectInstantiator;
+        private RuntimeSimSceneObjectInstantiator m_RuntimeUnderSceneObjectInstantiator;
 
 
         private void Awake()
         {
-            m_RuntimeSimSceneObjectInstantiator = new RuntimeSimSceneObjectInstantiator();
+            m_RuntimeSimSceneObjectInstantiator = new RuntimeSimSceneObjectInstantiator(Vector3.zero);
+            m_RuntimeUnderSceneObjectInstantiator = new RuntimeSimSceneObjectInstantiator(new Vector3(0f,-50f,0f));
+        }
+
+        public void BuildUndergroundDungeonEditor()
+        {
+            undergroundDungeon.Build(new RuntimeSimSceneObjectInstantiator(new Vector3(0f, -50f, 0f)));
+        }
+
+        public void BuildUndergroundDungeon()
+        {
+            undergroundDungeon.Build(m_RuntimeSimSceneObjectInstantiator);
+        }
+
+        public void DestroyUndergroundDungeon()
+        {
+            undergroundDungeon.DestroyDungeon();
         }
 
         public void BuildDungeonEditor()
         {
-            dungeon.Build(new EditorDungeonSceneObjectInstantiator());
+            dungeon.Build(new RuntimeSimSceneObjectInstantiator(Vector3.zero));
         }
 
-        public void BuildDungeon()
+        public void BuildGroundDungeon()
         {
             dungeon.Build(m_RuntimeSimSceneObjectInstantiator);
         }
 
-        public void DestroyDungeon()
+        public void DestroyGroundDungeon()
         {
             dungeon.DestroyDungeon();
         }

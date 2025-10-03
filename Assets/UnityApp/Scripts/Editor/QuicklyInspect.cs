@@ -23,6 +23,7 @@ namespace Johnny.SimDungeon
             GetWindow<QuicklyInspectWindow >().Show();
         }
 
+        [Title("Ground")]
         [Button]
         private void BuildDungeon()
         {
@@ -31,9 +32,23 @@ namespace Johnny.SimDungeon
         [Button]
         private void DestroyDungeon()
         {
-            DungeonController.Instance.DestroyDungeon();
+            DungeonController.Instance.DestroyGroundDungeon();
         }
 
+        [Title("Underground")]
+        [Button]
+        private void BuildUnderDungeon()
+        {
+            DungeonController.Instance.BuildUndergroundDungeonEditor();
+        }
+
+        [Button]
+        private void DestroyUnderDungeon()
+        {
+            DungeonController.Instance.DestroyUndergroundDungeon();
+        }
+
+        [Title("Function")]
         [Button]
         private void GC()
         {

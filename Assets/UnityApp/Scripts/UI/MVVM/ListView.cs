@@ -33,12 +33,14 @@ namespace Johnny.SimDungeon
         }
         private ObservableList<SelectableItemViewModel> m_Items;
 
-        private SelectableItemViewModel m_CurrentSelect;
-
         protected override void OnDestroy()
         {
             if (this.m_Items != null)
+            {
                 this.m_Items.CollectionChanged -= OnCollectionChanged;
+                m_Items.Clear();
+            }
+
         }
 
         protected void OnCollectionChanged(object sender, NotifyCollectionChangedEventArgs eventArgs)

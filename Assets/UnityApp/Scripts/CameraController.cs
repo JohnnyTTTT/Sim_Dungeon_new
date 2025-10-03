@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.Cinemachine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Johnny.SimDungeon
@@ -8,20 +9,13 @@ namespace Johnny.SimDungeon
         // -------------------------------------------------------------
         // 单例部分保持不变
         // -------------------------------------------------------------
-        public static CameraController Instance
-        {
-            get
-            {
-                if (s_Instances == null)
-                {
-                    s_Instances = FindFirstObjectByType<CameraController>();
-                }
-                return s_Instances;
-            }
-        }
-        private static CameraController s_Instances;
 
-        public Camera MainCamera;
+
+
+        [Header("Camera Settings")]
+        public bool isValid = false;
+        public CinemachineCamera cinemachineCamera;
+        private Camera m_MainCamera;
 
         [Header("Rotation Settings")]
         [SerializeField] private float m_RotateSpeed = 5f;
@@ -52,16 +46,15 @@ namespace Johnny.SimDungeon
 
         private void Start()
         {
+            m_MainCamera = CameraManager.Instance.MainCamera;
             m_PanPlane = new UnityEngine.Plane(Vector3.up, new Vector3(0f, m_PlaneHeight, 0f));
             m_TargetPosition = transform.position;
-            if (MainCamera == null)
-            {
-                MainCamera = GetComponent<Camera>();
-            }
         }
 
         private void Update()
         {
+            if (!isValid) return;
+
             HandlePanInput();
             HandleRotateInput();
             HandleZoomInput();
@@ -117,8 +110,8 @@ namespace Johnny.SimDungeon
 
         private Vector3 GetMousePlaneIntersection(Vector2 screenPos)
         {
-            if (MainCamera == null) return Vector3.zero;
-            var ray = MainCamera.ScreenPointToRay(screenPos);
+            if (m_MainCamera == null) return Vector3.zero;
+            var ray = m_MainCamera.ScreenPointToRay(screenPos);
             if (m_PanPlane.Raycast(ray, out var enter))
             {
                 return ray.GetPoint(enter);
@@ -242,7 +235,7 @@ namespace Johnny.SimDungeon
 
         private Vector3 GetScreenCenterPlanePoint()
         {
-            if (MainCamera == null) return Vector3.zero;
+            if (m_MainCamera == null) return Vector3.zero;
 
             var screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
             return GetMousePlaneIntersection(screenCenter);

@@ -9,6 +9,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Linq;
+using System;
 
 namespace Johnny.SimDungeon
 {
@@ -20,6 +21,9 @@ namespace Johnny.SimDungeon
             {
                 return this.m_SelectCommand;
             }
+            //set {
+            //    this.Set(ref m_SelectCommand, value);
+            //}
         }
         private ICommand m_SelectCommand;
 
@@ -29,7 +33,6 @@ namespace Johnny.SimDungeon
             set
             {
                 this.Set(ref m_Selected, value);
-                //OnSelect(m_Selected);
             }
         }
         private bool m_Selected;
@@ -63,9 +66,12 @@ namespace Johnny.SimDungeon
         private string m_Description;
 
 
-        public SelectableItemViewModel(ICommand selectCommand, Color? backgroundColor = null, Sprite icon = null, string title = null, string description = null)
+        public SelectableItemViewModel(ICommand selectCommand = null, Color? backgroundColor = null, Sprite icon = null, string title = null, string description = null)
         {
-            this.m_SelectCommand = selectCommand;
+            if (selectCommand != null)
+            {
+                this.m_SelectCommand = selectCommand;
+            }
 
             if (backgroundColor != null)
             {
@@ -89,33 +95,19 @@ namespace Johnny.SimDungeon
 
         }
 
-
-
-        public SimpleCommand SimpleCommand;
-        public void SetSelectCommand(ICommand selectCommand)
+        public void SetCommand(SimpleCommand<SelectableItemViewModel> itemSelectCommand)
         {
-
-            SimpleCommand = new SimpleCommand(SelectCommand1);
-            m_SelectCommand = SimpleCommand;
-
-            //this.m_SelectCommand = selectCommand;
-
+            m_SelectCommand = itemSelectCommand;
+            RaisePropertyChanged(nameof(SelectCommand));
         }
 
-        protected virtual void OnSelect(bool isSelect)
-        {
-
+        public virtual void OnSelectedChanged(bool value)
+        { 
+        
         }
-
-        public virtual void SelectCommand1()
-        {
-            Debug.Log(222);
-        }
-
-        public GameObject t;
     }
 
-    public  class SelectableItemView : UIView 
+    public class SelectableItemView : UIView
     {
         [SerializeField] private Button m_Button;
         [SerializeField] private Image m_SelectImage;
@@ -137,7 +129,7 @@ namespace Johnny.SimDungeon
 
         protected virtual void Binding(BindingSet<SelectableItemView, SelectableItemViewModel> bindingSet)
         {
-            bindingSet.Bind(this.m_Button).For(v => v.onClick).To(vm => vm.SelectCommand).CommandParameter(this.GetDataContext() as SelectableItemViewModel);
+            bindingSet.Bind(this.m_Button).For(v => v.onClick).To(vm => vm.SelectCommand).CommandParameter(this.GetDataContext() as SelectableItemViewModel).OneWay();
             bindingSet.Bind(this.m_SelectImage).For(v => v.enabled).To(vm => vm.IsSelected).OneWay();
 
             if (m_Icon != null && m_BindingIcon)
@@ -156,8 +148,11 @@ namespace Johnny.SimDungeon
             {
                 bindingSet.Bind(this.m_TooltipContent).For(v => v.description).To(vm => vm.Title).OneWay();
             }
-            bindingSet.Bind(this.m_BackgroundImage).For(v => v.enabled).To(vm => vm.IsSelected).OneWay();
-         //bindingSet.Bind(this.m_Button).For(v => v.onClick).To(vm => vm.SelectCommand1);
+        }
+
+        protected override void OnDestroy()
+        {
+            this.ClearAllBindings();
         }
     }
 

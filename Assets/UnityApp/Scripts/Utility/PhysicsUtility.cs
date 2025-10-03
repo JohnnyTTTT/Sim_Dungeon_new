@@ -8,7 +8,7 @@ namespace Johnny.SimDungeon
         public static bool MouseRaycastHit(LayerMask layerMask, out RaycastHit hit)
         {
             var mousePos = Mouse.current.position.ReadValue();
-            var ray = CameraController.Instance.MainCamera.ScreenPointToRay(mousePos);
+            var ray = CameraManager.Instance.MainCamera.ScreenPointToRay(mousePos);
 
             if (Physics.Raycast(ray, out hit, 1000f, layerMask))
             {

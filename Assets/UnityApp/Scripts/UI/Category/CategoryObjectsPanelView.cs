@@ -19,7 +19,28 @@ using static UnityEditor.Profiling.HierarchyFrameDataView;
 
 namespace Johnny.SimDungeon
 {
-    public class CategoryObjectsPanelViewModel : ListViewModel<SelectableItemViewModel>
+    public class CategoryObjectItemViewModel : SelectableItemViewModel
+    {
+        public BuildableObjectUICategorySO Data
+        {
+            get { return this.data; }
+            set { this.Set(ref data, value); }
+        }
+        private BuildableObjectUICategorySO data;
+
+        public CategoryObjectItemViewModel(BuildableObjectUICategorySO categorySO, Loxodon.Framework.Commands.ICommand selectCommand) :
+            base(selectCommand)
+        {
+            if (categorySO != null)
+            {
+                Icon = categorySO.categoryIcon;
+                Data = categorySO;
+                Description = categorySO.categoryName;
+            }
+        }
+    }
+
+    public class CategoryObjectsPanelViewModel : ListViewModel
     {
         public Dictionary<BuildCategory, ObservableList<SelectableItemViewModel>> AllItems;
 
@@ -57,11 +78,15 @@ namespace Johnny.SimDungeon
         private BuildCategory m_ActiveBuildCategory;
 
         private IDisposable m_Subscription;
+        private IDisposable m_FixedToolbarSubscription;
 
         public CategoryObjectsPanelViewModel(BuildableGenAssets buildableGenAssets, IMessenger messenger) : base(messenger)
         {
             m_Subscription = Messenger.Subscribe<PropertyChangedMessage<GameState>>(OnGameStateChanged);
-            //m_Subscription = Messenger.Subscribe<PropertyChangedMessage<SelectableItemViewModel>>(nameof(FixedToolbarViewModel), OnFixedToolbarViewModelItemChange);
+
+            m_FixedToolbarSubscription = Messenger.Subscribe<PropertyChangedMessage<SelectableItemViewModel>>(
+                FixedToolbarViewModel.BeforeFixedToolbarSelectedItemChange, OnFixedToolbarViewModelItemChange);
+
             AllItems = new Dictionary<BuildCategory, ObservableList<SelectableItemViewModel>>();
             CreateItems(buildableGenAssets);
         }
@@ -70,7 +95,8 @@ namespace Johnny.SimDungeon
         {
             if (message.NewValue != null)
             {
-                SetSelectedItem(null);
+                Debug.Log(2);
+                SetSelectedItem(null);  
             }
         }
 
@@ -118,15 +144,17 @@ namespace Johnny.SimDungeon
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            if (m_Subscription != null)
             {
-                if (m_Subscription != null)
-                {
-                    m_Subscription.Dispose();
-                    m_Subscription = null;
-                    AllItems?.Clear();
-                }
+                m_Subscription.Dispose();
+                m_Subscription = null;
             }
+            if (m_FixedToolbarSubscription != null)
+            {
+                m_FixedToolbarSubscription.Dispose();
+                m_FixedToolbarSubscription = null;
+            }
+            AllItems?.Clear();
         }
 
     }
@@ -157,9 +185,14 @@ namespace Johnny.SimDungeon
             bindingSet.Build();
         }
 
+        protected override void OnDestroy()
+        {
+            this.ClearAllBindings();
+        }
+
         private void OnActiveGridModeChanged(EasyGridBuilderPro easyGridBuilderPro, GridMode gridMode)
         {
-            if (gridMode != GridMode.BuildMode && m_ViewModel.SelectedItem != null)
+            if (gridMode != GridMode.BuildMode && m_ViewModel.GetSelectedItem() != null)
             {
                 m_ViewModel.SetSelectedItem(null);
             }

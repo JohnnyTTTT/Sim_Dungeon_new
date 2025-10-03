@@ -8,8 +8,14 @@ namespace Johnny.SimDungeon
 {
     public class RuntimeSimSceneObjectInstantiator : IDungeonSceneObjectInstantiator
     {
+        private Vector3 m_Offset;
+        public RuntimeSimSceneObjectInstantiator(Vector3 offset)
+        {
+            m_Offset = offset;
+        }
         public GameObject Instantiate(GameObject template, Vector3 position, Quaternion rotation, Vector3 scale, Transform parent)
         {
+            position += m_Offset;
             GameObject reslut = null;
             if (Application.isPlaying)
             {
@@ -77,8 +83,8 @@ namespace Johnny.SimDungeon
                             }
                         }
                     }
- 
-     
+
+
 
                 }
                 else
@@ -90,7 +96,6 @@ namespace Johnny.SimDungeon
             //Editor
             else
             {
-
                 reslut = InstantiateEditor(template, position, rotation, scale, parent);
             }
             reslut.transform.parent = parent;

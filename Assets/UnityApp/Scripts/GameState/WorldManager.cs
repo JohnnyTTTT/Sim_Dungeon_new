@@ -10,6 +10,12 @@ using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
+    public enum DevDungenCreateMode
+    {
+        Ground,
+        Underground,
+        Both
+    }
     public class WorldManager : MonoBehaviour
     {
         public static WorldManager Instance
@@ -25,6 +31,8 @@ namespace Johnny.SimDungeon
 
         }
         private static WorldManager s_Instance;
+        [Title("Dev")]
+        public DevDungenCreateMode dungenCreateMode;
 
         [Title("Grid System")]
         public DisablerController disablerController_SmallCell;
@@ -45,7 +53,19 @@ namespace Johnny.SimDungeon
             EasyGridBuilderPro.OnGridSystemCreated += OnGridSystemCreated;
             var serviceContainer = Context.GetApplicationContext().GetContainer();
             m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
-            StartCoroutine(LoadWorld());
+            switch (dungenCreateMode)
+            {
+                case DevDungenCreateMode.Ground:
+                    StartCoroutine(CreateGroundWorld());
+                    break;
+                case DevDungenCreateMode.Underground:
+                    //StartCoroutine(CreateUndergroundWorld());
+                    break;
+                case DevDungenCreateMode.Both:
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void OnPostDungeonBuild()
@@ -69,7 +89,7 @@ namespace Johnny.SimDungeon
             }
         }
 
-        private IEnumerator LoadWorld()
+        private IEnumerator CreateGroundWorld()
         {
             yield return new WaitForEndOfFrame();
 
@@ -84,10 +104,10 @@ namespace Johnny.SimDungeon
             Debug.Log("[-----System-----] : EGB º”‘ÿÕÍ±œ");
 
             yield return new WaitForEndOfFrame();
-            DungeonController.Instance.DestroyDungeon();
+            DungeonController.Instance.DestroyGroundDungeon();
 
             yield return new WaitForEndOfFrame();
-            DungeonController.Instance.BuildDungeon();
+            DungeonController.Instance.BuildGroundDungeon();
 
             while (!m_IsDeogunReady)
             {
@@ -138,7 +158,7 @@ namespace Johnny.SimDungeon
 
         private void OnDestroy()
         {
-            DungeonController.Instance.DestroyDungeon();
+            DungeonController.Instance.DestroyGroundDungeon();
             ElementManager_LargeCell.Instance.Dispose();
             ElementManager_Edge.Instance.Dispose();
             ElementManager_SmallCell.Instance.Dispose();

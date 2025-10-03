@@ -55,7 +55,7 @@ namespace Johnny.SimDungeon
         //}
 
 
-        public class GameStateViewModel : ListViewModel<SelectableItemViewModel>
+        public class GameStateViewModel : ListViewModel
         {
             //private IDisposable m_Subscription;
 
@@ -125,6 +125,11 @@ namespace Johnny.SimDungeon
                 bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
 
                 bindingSet.Build();
+            }
+
+            protected override void OnDestroy()
+            {
+                this.ClearAllBindings();
             }
         }
     }
