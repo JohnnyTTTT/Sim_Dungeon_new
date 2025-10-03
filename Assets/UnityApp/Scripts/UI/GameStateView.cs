@@ -7,77 +7,125 @@ using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
+    using Loxodon.Framework.Binding;
+    using Loxodon.Framework.Binding.Builder;
+    using Loxodon.Framework.Commands;
+    using Loxodon.Framework.Messaging;
+    using Loxodon.Framework.ViewModels;
+    using Loxodon.Framework.Views;
+    using Michsky.MUIP;
+    using System;
+    using UnityEngine;
+    using UnityEngine.UI;
 
-    public class GameStateViewModel : ListViewModel<GameStateItemViewModel>
+    namespace Johnny.SimDungeon
     {
-        //private IDisposable m_Subscription;
-
-        public GameStateViewModel()
+        public class GameStateItemViewModel : SelectableItemViewModel
         {
-            //m_Subscription = Loxodon.Framework.Messaging.Messenger.Default.Subscribe<PropertyChangedMessage<GameState>>(OnGameStateChanged);
+            public GameState GameState
+            {
+                get
+                {
+                    return m_GameState;
+                }
+                set
+                {
+                    Set(ref m_GameState, value);
+                }
+            }
+            private GameState m_GameState;
+
+            public GameStateItemViewModel(GameState gameState, Sprite icon, ICommand selectCommand) : 
+                base(selectCommand,null,icon)
+            {
+                m_GameState = gameState;
+            }
         }
 
-
-        protected override void OnSelectedItemChanged(GameStateItemViewModel old, GameStateItemViewModel item)
-        {
-            if (item != null)
-            {
-                GameStateManager.Instance.ChangeState(item.GameState);
-            }
-            else
-            {
-                GameStateManager.Instance.ChangeState(GameState.Default);
-            }
-        }
-
-
-        //private void OnGameStateChanged(PropertyChangedMessage<GameState> message)
+        //public class GameStateItemView : SelectableItemView<GameStateItemViewModel>
         //{
-        //    var state = message.NewValue;
-        //    foreach (var item in Items)
+        //    [SerializeField] private Image m_Icon;
+        //    [SerializeField] private TooltipContent m_TooltipContent;
+
+        //    protected override void Binding(BindingSet<SelectableItemView<GameStateItemViewModel>, GameStateItemViewModel> bindingSet)
         //    {
-        //        item.IsSelected = item.GameState == state;
+        //        base.Binding(bindingSet);
+        //        bindingSet.Bind(m_Icon).For(v => v.sprite).To(vm => vm.Icon).OneWay();
         //    }
         //}
 
-        public GameStateItemViewModel CreateViewMode(GameState gameState, Sprite icon)
+
+        public class GameStateViewModel : ListViewModel<SelectableItemViewModel>
         {
-            var item = new GameStateItemViewModel(gameState, icon, this.ItemSelectCommand);
-            Items.Add(item);
-            return item;
+            //private IDisposable m_Subscription;
+
+            public GameStateViewModel(IMessenger messenger) : base(messenger)
+            {
+                //m_Subscription = Loxodon.Framework.Messaging.Messenger.Default.Subscribe<PropertyChangedMessage<GameState>>(OnGameStateChanged);
+            }
+
+
+            protected override void OnSelectedItemChanged(SelectableItemViewModel old, SelectableItemViewModel item)
+            {
+                if (item != null)
+                {
+                    GameStateManager.Instance.ChangeState((item as GameStateItemViewModel).GameState);
+                }
+                //else
+                //{
+                //    GameStateManager.Instance.ChangeState(GameState.Default);
+                //}
+            }
+
+
+            //private void OnGameStateChanged(PropertyChangedMessage<GameState> message)
+            //{
+            //    var state = message.NewValue;
+            //    foreach (var item in Items)
+            //    {
+            //        item.IsSelected = item.GameState == state;
+            //    }
+            //}
+
+            public GameStateItemViewModel CreateViewMode(GameState gameState, Sprite icon)
+            {
+                var item = new GameStateItemViewModel(gameState, icon, this.ItemSelectCommand);
+                Items.Add(item);
+                return item;
+            }
         }
-    }
 
-    public class GameStateView : UIView
-    {
-        //[SerializeField] private AnimationPanel m_AnimationPanel;
-        [SerializeField] private GameStateListView m_ListView;
-        [SerializeField] private Sprite m_DefalutIcon;
-        [SerializeField] private Sprite m_StructureIcon;
-        [SerializeField] private Sprite m_PlacementIcon;
-
-        private GameStateViewModel m_ViewModel;
-
-        protected override void Awake()
+        public class GameStateView : UIView
         {
-            m_ViewModel = new GameStateViewModel();
-            this.SetDataContext(m_ViewModel);
-            var serviceContainer = Context.GetApplicationContext().GetContainer();
-            serviceContainer.Register(m_ViewModel);
-        }
+            //[SerializeField] private AnimationPanel m_AnimationPanel;
+            [SerializeField] private ListView m_ListView;
+            [SerializeField] private Sprite m_DefalutIcon;
+            [SerializeField] private Sprite m_StructureIcon;
+            [SerializeField] private Sprite m_PlacementIcon;
 
-        protected override void Start()
-        {
-            m_ViewModel.CreateViewMode(GameState.Default, m_DefalutIcon);
-            m_ViewModel.CreateViewMode(GameState.Structure, m_StructureIcon);
-            m_ViewModel.CreateViewMode(GameState.Placement, m_PlacementIcon);
+            private GameStateViewModel m_ViewModel;
 
-            var bindingSet = this.CreateBindingSet<GameStateView, GameStateViewModel>();
+            protected override void Awake()
+            {
+                m_ViewModel = new GameStateViewModel(Messenger.Default);
+                this.SetDataContext(m_ViewModel);
+                var serviceContainer = Context.GetApplicationContext().GetContainer();
+                serviceContainer.Register(m_ViewModel);
+            }
 
-            //bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).To(vm => vm.IsVisible).OneWay();
-            bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
+            protected override void Start()
+            {
+                m_ViewModel.CreateViewMode(GameState.Default, m_DefalutIcon);
+                m_ViewModel.CreateViewMode(GameState.Structure, m_StructureIcon);
+                m_ViewModel.CreateViewMode(GameState.Placement, m_PlacementIcon);
 
-            bindingSet.Build();
+                var bindingSet = this.CreateBindingSet<GameStateView, GameStateViewModel>();
+
+                //bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).To(vm => vm.IsVisible).OneWay();
+                bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
+
+                bindingSet.Build();
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using Loxodon.Framework.Commands;
+using Loxodon.Framework.Messaging;
 using Loxodon.Framework.Observables;
 using Loxodon.Framework.ViewModels;
 using System;
@@ -17,7 +18,7 @@ namespace Johnny.SimDungeon
         }
         private ObservableList<T> m_Items;
 
-        public ListViewModel()
+        public ListViewModel(IMessenger messenger) : base( messenger)
         {
             Items = new ObservableList<T>();
             ItemSelectCommand = new SimpleCommand<T>(OnItemSelect);
@@ -79,6 +80,13 @@ namespace Johnny.SimDungeon
 
             this.m_Items.Clear();
             SetSelectedItem(null);
+        }
+
+        public void AddItem(T item)
+        {
+            Debug.Log(item);
+            item.SetSelectCommand(ItemSelectCommand) ;
+            Items.Add(item);
         }
     }
 }

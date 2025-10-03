@@ -97,14 +97,12 @@ namespace Johnny.SimDungeon
 
             yield return new WaitForEndOfFrame();
             var gridFlowDungeonModel = DungeonController.Instance.dungeonModel;
-            ElementManager_LargeCell.Instance.Init(gridFlowDungeonModel.Tilemap.Cells);
-            ElementManager_Edge.Instance.Init(gridFlowDungeonModel.Tilemap.Edges);
-            ElementManager_SmallCell.Instance.Init(SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell);
-            ElementManager_Region.Instance.Init();
+            ElementManager_LargeCell.Instance.Initialize(gridFlowDungeonModel.Tilemap.Cells);
+            ElementManager_Edge.Instance.Initialize(gridFlowDungeonModel.Tilemap.Edges);
+            ElementManager_SmallCell.Instance.Initialize(SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell);
+            ElementManager_Region.Instance.Initialize();
 
-            ElementManager_LargeCell.Instance.PostInit();
             ElementManager_Edge.Instance.PostInit();
-            ElementManager_SmallCell.Instance.PostInit();
             ElementManager_Region.Instance.PostInit();
 
             Debug.Log("[-----System-----] : 数据创建完毕");
@@ -136,6 +134,15 @@ namespace Johnny.SimDungeon
             GameStateManager.Instance.ChangeState(GameState.Default);
             m_IsWorldReady = true;
             Debug.Log("[-----System-----] : 世界创建完毕");
+        }
+
+        private void OnDestroy()
+        {
+            DungeonController.Instance.DestroyDungeon();
+            ElementManager_LargeCell.Instance.Dispose();
+            ElementManager_Edge.Instance.Dispose();
+            ElementManager_SmallCell.Instance.Dispose();
+            ElementManager_Region.Instance.Dispose();
         }
     }
 }

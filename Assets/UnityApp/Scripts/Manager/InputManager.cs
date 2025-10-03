@@ -27,6 +27,8 @@ namespace Johnny.SimDungeon
 
         private const string BUILD_MODE_ACTIVATION = "Build Mode Activation";
         private const string BUILD = "Build";
+        private const string BUILDABLE_ROTATE_CLOCKWISE = "Buildable Rotate Clockwise";
+        private const string BUILDABLE_ROTATE_COUNTER_CLOCKWISE = "Buildable Rotate Counter Clockwise";
 
         private const string DESTROY_MODE_ACTIVATION = "Destroy Mode Activation";
         private const string DESTROY = "Destroy";
@@ -121,7 +123,9 @@ namespace Johnny.SimDungeon
 
                 (buildActions.FindAction(BUILD_MODE_ACTIVATION), null, BuildModeActivationActionPerformed, null),
                 (buildActions.FindAction(BUILD), BuildActionStarted, BuildActionPerformed, BuildActionCancelled),
-              
+                (buildActions.FindAction(BUILDABLE_ROTATE_CLOCKWISE), null, BuildableRotateClockwiseActionPerformed, BuildableRotateClockwiseActionCancelled),
+                (buildActions.FindAction(BUILDABLE_ROTATE_COUNTER_CLOCKWISE), null, BuildableRotateCounterClockwiseActionPerformed, BuildableRotateCounterClockwiseActionCancelled),
+
                 (destroyActions.FindAction(DESTROY_MODE_ACTIVATION), null, DestroyModeActivationActionPerformed, null),
                 (destroyActions.FindAction(DESTROY), DestroyActionStarted, DestroyActionPerformed, DestroyActionCancelled),
 
@@ -191,12 +195,49 @@ namespace Johnny.SimDungeon
         }
         #endregion Build Actions End:
 
+        #region Buildable Rotate Clockwise Actions Start:
+        private void BuildableRotateClockwiseActionPerformed(InputAction.CallbackContext context)
+        {
+            EnqueueAction(context, () =>
+            {
+                SpawnManager.Instance.SetInputBuildableObjectClockwiseRotation();
+            });
+        }
+
+        private void BuildableRotateClockwiseActionCancelled(InputAction.CallbackContext context)
+        {
+            EnqueueAction(context, () =>
+            {
+                SpawnManager.Instance.SetInputBuildableObjectClockwiseRotationComplete();
+            });
+        }
+        #endregion Buildable Rotate Clockwise Actions End:
+
+        #region Buildable Rotate Counter Clockwise Actions Start:
+        private void BuildableRotateCounterClockwiseActionPerformed(InputAction.CallbackContext context)
+        {
+            EnqueueAction(context, () =>
+            {
+                SpawnManager.Instance.SetInputBuildableObjectCounterClockwiseRotation();
+            });
+        }
+
+        private void BuildableRotateCounterClockwiseActionCancelled(InputAction.CallbackContext context)
+        {
+            EnqueueAction(context, () =>
+            {
+                SpawnManager.Instance.SetInputBuildableObjectCounterClockwiseRotationComplete();
+            });
+        }
+        #endregion Buildable Rotate Counter Clockwise Actions End:
+
+
 
         #region Destroy Mode Activation Actions Start:
         private void DestroyModeActivationActionPerformed(InputAction.CallbackContext context)
         {
             if (GridManager.Instance.GetEasyGridBuilderProSystemsList().Count <= 0) return;
-            EnqueueAction(context, () => SpawnManager.Instance.SetActiveGridModeInAllGrids(GridMode.DestroyMode));
+            EnqueueAction(context, () => SpawnManager.Instance.SetDestroyModeInAllGrids(DestroyMode.Entity));
         }
         #endregion Destroy Mode Activation Actions End:
 
@@ -232,6 +273,7 @@ namespace Johnny.SimDungeon
             });
         }
         #endregion Destroy Actions End:
+
 
 
         #region Move Mode Activation Actions Start:

@@ -56,6 +56,11 @@ namespace Johnny.SimDungeon
 
         private List<Region> m_CurrentShowRegions = new List<Region>();
 
+        private void OnDestroy()
+        {
+            Dispose();
+        }
+
         public void Initialize()
         {
             var factory = new RegionMeshFactory(this.m_RegionModelPrefab, this.m_RegionMeshContainer);

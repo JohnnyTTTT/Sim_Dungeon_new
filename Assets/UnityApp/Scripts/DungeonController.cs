@@ -47,6 +47,11 @@ namespace Johnny.SimDungeon
             m_RuntimeSimSceneObjectInstantiator = new RuntimeSimSceneObjectInstantiator();
         }
 
+        public void BuildDungeonEditor()
+        {
+            dungeon.Build(new EditorDungeonSceneObjectInstantiator());
+        }
+
         public void BuildDungeon()
         {
             dungeon.Build(m_RuntimeSimSceneObjectInstantiator);

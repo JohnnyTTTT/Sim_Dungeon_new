@@ -8,15 +8,12 @@ using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
-
-
-
-    public class ListView<T> : UIView where T : SelectableItemViewModel
+    public class ListView : UIView
     {
         public Transform content;
         public GameObject itemTemplate;
 
-        public ObservableList<T> Items
+        public ObservableList<SelectableItemViewModel> Items
         {
             get { return this.m_Items; }
             set
@@ -34,9 +31,9 @@ namespace Johnny.SimDungeon
                     this.m_Items.CollectionChanged += OnCollectionChanged;
             }
         }
-        private ObservableList<T> m_Items;
+        private ObservableList<SelectableItemViewModel> m_Items;
 
-        private T m_CurrentSelect;
+        private SelectableItemViewModel m_CurrentSelect;
 
         protected override void OnDestroy()
         {
@@ -89,7 +86,7 @@ namespace Johnny.SimDungeon
             itemViewGo.SetActive(true);
 
             var itemView = itemViewGo.GetComponent<UIView>();
-            itemView.SetDataContext(item);
+            itemView.SetDataContext((SelectableItemViewModel)item);
         }
 
         protected virtual void RemoveItem(int index, object item)

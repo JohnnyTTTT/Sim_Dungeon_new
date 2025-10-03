@@ -48,9 +48,6 @@ namespace Johnny.SimDungeon
 
         public Dictionary<Vector2Int, Region> mapForSmallCoord = new Dictionary<Vector2Int, Region>();
 
-
-
-        [SerializeField] private RegionRangeMeshController m_RegionRangeMeshController;
         public bool drawGizmos;
 
         [ShowInInspector]
@@ -103,10 +100,9 @@ namespace Johnny.SimDungeon
 
 
 
-        public void Init()
+        public void Initialize()
         {
             regionList.Clear();
-            m_RegionRangeMeshController.Initialize();
         }
 
         public void PostInit()
@@ -141,8 +137,7 @@ namespace Johnny.SimDungeon
 
         public void Dispose()
         {
-            regionList.Clear();
-            m_RegionRangeMeshController.Dispose();
+            regionList?.Clear();
         }
 
         private void OnDestroy()

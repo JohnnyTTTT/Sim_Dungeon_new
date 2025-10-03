@@ -17,20 +17,6 @@ namespace Johnny.SimDungeon
         }
         private BuildableObjectUICategorySO data;
 
-        public Sprite Icon
-        {
-            get { return this.icon; }
-            set { this.Set(ref icon, value); }
-        }
-        private Sprite icon;
-
-        public string Description
-        {
-            get { return this.m_Description; }
-            set { this.Set(ref m_Description, value); }
-        }
-        private string m_Description;
-
         public CategoryObjectItemViewModel(BuildableObjectUICategorySO categorySO,Loxodon.Framework.Commands.ICommand selectCommand) :
             base(selectCommand)
         {
@@ -40,17 +26,6 @@ namespace Johnny.SimDungeon
                 Data = categorySO;
                 Description = categorySO.categoryName;
             }
-        }
-    }
-    public class CategoryObjectItemView : SelectableItemView<CategoryObjectItemViewModel>
-    {
-        [SerializeField] private Image m_Icon;
-        [SerializeField] private TooltipContent m_TooltipContent;
-        protected override void Binding(BindingSet<SelectableItemView<CategoryObjectItemViewModel>, CategoryObjectItemViewModel> bindingSet)
-        {
-            base.Binding(bindingSet);
-            bindingSet.Bind(m_Icon).For(v => v.sprite).To(vm => vm.Icon).OneWay();
-            bindingSet.Bind(m_TooltipContent).For(v => v.description).To(vm => vm.Description).OneWay();
         }
     }
 }

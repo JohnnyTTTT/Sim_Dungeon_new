@@ -39,13 +39,12 @@ namespace Johnny.SimDungeon
 
         public void OnRotateLeftButtonClicked()
         {
-            SpawnManager.Instance.SetInputBuildableObjectClockwiseRotation(true);
-
+            SpawnManager.Instance.SetInputBuildableObjectClockwiseRotation();
         }
 
         public void OnRotateRightButtonClicked()
         {
-            SpawnManager.Instance.SetInputBuildableObjectClockwiseRotation(false);
+            SpawnManager.Instance.SetInputBuildableObjectCounterClockwiseRotation();
         }
 
     }

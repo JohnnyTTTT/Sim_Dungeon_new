@@ -27,8 +27,8 @@ namespace Johnny.SimDungeon
     public enum DestroyMode
     {
         None,
-        Edge,
         Entity,
+        Edge,
     }
 
     public class MainGameViewModel : ViewModelBase
@@ -62,13 +62,14 @@ namespace Johnny.SimDungeon
             }
         }
         private GridMode m_GridMode;
+
     }
 
 
     public class MainGameView : UIView
     {
         [SerializeField] private CategoryObjectsPanelView m_CategoryObjectsPanelView;
-        [SerializeField] private FixedToolbarView m_FixedToolbarView;
+        //[SerializeField] private FixedToolbarView m_FixedToolbarView;
 
         private MainGameViewModel m_ViewModel;
         //private BuildableObjectsPanelViewModel m_BuildableObjectsPanelViewModel;
@@ -89,14 +90,14 @@ namespace Johnny.SimDungeon
 
             var bindingSet = this.CreateBindingSet<MainGameView, MainGameViewModel>();
 
-            bindingSet.Bind(this.m_CategoryObjectsPanelView).For(v => v.Visibility)
-                .ToExpression(vm => (vm.GameState == GameState.Structure || vm.GameState == GameState.Placement)
-                && vm.GridMode != GridMode.DestroyMode)
-                .OneWay();
+            //bindingSet.Bind(this.m_CategoryObjectsPanelView).For(v => v.Visibility)
+            //    .ToExpression(vm => (vm.GameState == GameState.Structure || vm.GameState == GameState.Placement)
+            //    && vm.GridMode != GridMode.DestroyMode)
+            //    .OneWay();
 
-            bindingSet.Bind(this.m_FixedToolbarView).For(v => v.Visibility)
-                .ToExpression(vm => vm.GameState == GameState.Structure || vm.GameState == GameState.Placement)
-                .OneWay();
+            //bindingSet.Bind(this.m_FixedToolbarView).For(v => v.Visibility)
+            //    .ToExpression(vm => vm.GameState == GameState.Structure || vm.GameState == GameState.Placement)
+            //    .OneWay();
 
             bindingSet.Build();
         }

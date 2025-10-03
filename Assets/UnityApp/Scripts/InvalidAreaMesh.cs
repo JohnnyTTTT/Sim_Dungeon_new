@@ -8,6 +8,11 @@ namespace Johnny.SimDungeon
     {
         [SerializeField] private MeshFilter m_MeshFilter;
 
+        private void OnDestroy()
+        {
+            Dispose();
+        }
+
         public void UpdateMesh()
         {
             if (m_MeshFilter.sharedMesh == null)
@@ -61,7 +66,7 @@ namespace Johnny.SimDungeon
             m_MeshFilter.sharedMesh.RecalculateBounds();
         }
 
-        public void Clear()
+        public void Dispose()
         {
             if (m_MeshFilter.sharedMesh != null)
             {

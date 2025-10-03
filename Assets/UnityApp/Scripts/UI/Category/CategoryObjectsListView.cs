@@ -1,9 +1,9 @@
-using UnityEngine;
+//using UnityEngine;
 
-namespace Johnny.SimDungeon
-{
-    public class CategoryObjectsListView : ListView<CategoryObjectItemViewModel>
-    {
+//namespace Johnny.SimDungeon
+//{
+//    public class CategoryObjectsListView : ListView<CategoryObjectItemViewModel>
+//    {
 
-    }
-}
+//    }
+//}

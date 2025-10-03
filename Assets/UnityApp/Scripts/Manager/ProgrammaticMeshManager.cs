@@ -36,17 +36,8 @@ namespace Johnny.SimDungeon
 
         public void Dispose()
         {
-            Clear();
-        }
 
-        public void Clear()
-        {
-            if (m_InvalidAreaMesh != null)
-            {
-                m_InvalidAreaMesh.Clear();
-            }
         }
-
 
     }
 }

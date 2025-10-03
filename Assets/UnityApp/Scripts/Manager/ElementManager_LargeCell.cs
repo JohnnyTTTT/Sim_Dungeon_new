@@ -87,9 +87,7 @@ namespace Johnny.SimDungeon
 
         public Vector2Int drawGizmosCoord;
 
-
-
-        public void Init(FlowTilemapCellDatabase cells)
+        public void Initialize(FlowTilemapCellDatabase cells)
         {
             map.Clear();
 
@@ -102,43 +100,11 @@ namespace Johnny.SimDungeon
             Debug.Log($"[-----System-----] : DataManager Cell inited , Cell count <{map.Count}>");
         }
 
-        public void PostInit()
+        public void Dispose()
         {
-            foreach (var element in map.Values)
-            {
-                var coord = element.coord;
-
-                //element.edges[0] = edgeManager.GetLeftEdgeFromTileCoord(coord);
-                //element.edges[1] = edgeManager.GetUpEdgeFromTileCoord(coord);
-                //element.edges[2] = edgeManager.GetRightEdgeFromTileCoord(coord);
-                //element.edges[3] = edgeManager.GetDownEdgeFromTileCoord(coord);
-
-
-
-                //var startPosition = element.worldPosition + new Vector3(-0.5f, -0.5f);
-                //var startcoord = CoordUtility.WorldPositionToSmallCoord(startPosition);
-
-                //var s0 = ElementManager_SmallCell.Instance.GetElement(startcoord);
-                //if (s0 != null) element.containedSmallCells[0] = s0;
-
-                //var s1 = ElementManager_SmallCell.Instance.GetUpCellFromCoord(startcoord);
-                //if (s1 != null) element.containedSmallCells[1] = s1;
-
-                //var s2 = ElementManager_SmallCell.Instance.GetRightCellFromCoord(startcoord);
-                //if (s2 != null) element.containedSmallCells[2] = s2;
-
-                //var s3 = ElementManager_SmallCell.Instance.GetElement(startcoord + new Vector2Int(1, 1));
-                //if (s3 != null) element.containedSmallCells[3] = s3;
-
-            }
-
-
+            map?.Clear();
         }
 
-        public void UnInit()
-        {
-            map.Clear();
-        }
         public Element_LargeCell[] GetCellNeighbors(Vector2Int coord)
         {
             var neighbors = new Element_LargeCell[4];
@@ -163,6 +129,7 @@ namespace Johnny.SimDungeon
         {
             return GetElement(coord + DirectionUtility.RIGHT);
         }
+
 
         public Element_LargeCell GetDownCellFromCoord(Vector2Int coord)
         {

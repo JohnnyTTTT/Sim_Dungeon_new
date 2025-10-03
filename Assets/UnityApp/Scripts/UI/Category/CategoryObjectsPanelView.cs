@@ -19,9 +19,22 @@ using static UnityEditor.Profiling.HierarchyFrameDataView;
 
 namespace Johnny.SimDungeon
 {
-    public class CategoryObjectsPanelViewModel : ListViewModel<CategoryObjectItemViewModel>
+    public class CategoryObjectsPanelViewModel : ListViewModel<SelectableItemViewModel>
     {
-        public Dictionary<BuildCategory, ObservableList<CategoryObjectItemViewModel>> AllItems;
+        public Dictionary<BuildCategory, ObservableList<SelectableItemViewModel>> AllItems;
+
+        public bool Visibility
+        {
+            get
+            {
+                return m_Visibility;
+            }
+            set
+            {
+                Set(ref m_Visibility, value);
+            }
+        }
+        private bool m_Visibility;
 
         public BuildCategory ActiveBuildCategory
         {
@@ -31,9 +44,8 @@ namespace Johnny.SimDungeon
             }
             set
             {
-                if (m_ActiveBuildCategory != value)
+                if (Set(ref m_ActiveBuildCategory, value))
                 {
-                    Set(ref m_ActiveBuildCategory, value);
                     SetSelectedItem(null);
                     if (AllItems.TryGetValue(m_ActiveBuildCategory, out var datas))
                     {
@@ -46,11 +58,20 @@ namespace Johnny.SimDungeon
 
         private IDisposable m_Subscription;
 
-        public CategoryObjectsPanelViewModel(BuildableGenAssets buildableGenAssets)
+        public CategoryObjectsPanelViewModel(BuildableGenAssets buildableGenAssets, IMessenger messenger) : base(messenger)
         {
-            m_Subscription = Loxodon.Framework.Messaging.Messenger.Default.Subscribe<PropertyChangedMessage<GameState>>(OnGameStateChanged);
-            AllItems = new Dictionary<BuildCategory, ObservableList<CategoryObjectItemViewModel>>();
+            m_Subscription = Messenger.Subscribe<PropertyChangedMessage<GameState>>(OnGameStateChanged);
+            //m_Subscription = Messenger.Subscribe<PropertyChangedMessage<SelectableItemViewModel>>(nameof(FixedToolbarViewModel), OnFixedToolbarViewModelItemChange);
+            AllItems = new Dictionary<BuildCategory, ObservableList<SelectableItemViewModel>>();
             CreateItems(buildableGenAssets);
+        }
+
+        private void OnFixedToolbarViewModelItemChange(PropertyChangedMessage<SelectableItemViewModel> message)
+        {
+            if (message.NewValue != null)
+            {
+                SetSelectedItem(null);
+            }
         }
 
         private void OnGameStateChanged(PropertyChangedMessage<GameState> message)
@@ -59,21 +80,26 @@ namespace Johnny.SimDungeon
             if (value == GameState.Structure)
             {
                 ActiveBuildCategory = BuildCategory.Structure;
+                Visibility = true;
             }
             else if (value == GameState.Placement)
             {
                 ActiveBuildCategory = BuildCategory.Placement;
+                Visibility = true;
             }
             else
             {
                 ActiveBuildCategory = BuildCategory.None;
+                Visibility = false;
             }
         }
 
-        protected override void OnSelectedItemChanged(CategoryObjectItemViewModel old, CategoryObjectItemViewModel item)
+        protected override void OnSelectedItemChanged(SelectableItemViewModel old, SelectableItemViewModel item)
         {
             SpawnManager.Instance.GridModeReset();
-            Loxodon.Framework.Messaging.Messenger.Default.Publish(new PropertyChangedMessage<CategoryObjectItemViewModel>(old, item, nameof(CategoryObjectItemViewModel)));
+            var oldVM = old as CategoryObjectItemViewModel;
+            var newVM = item as CategoryObjectItemViewModel;
+            Messenger.Publish(new PropertyChangedMessage<CategoryObjectItemViewModel>(oldVM, newVM, nameof(CategoryObjectItemViewModel)));
             //BindingService.BuildableObjectsPanelViewModel.ActiveCategoryObjectItemView = item;
         }
 
@@ -83,10 +109,23 @@ namespace Johnny.SimDungeon
             {
                 if (!AllItems.ContainsKey(buildableGen.buildCategory))
                 {
-                    AllItems[buildableGen.buildCategory] = new ObservableList<CategoryObjectItemViewModel>();
+                    AllItems[buildableGen.buildCategory] = new ObservableList<SelectableItemViewModel>();
                 }
                 var item = new CategoryObjectItemViewModel(buildableGen.buildableObjectSO.buildableObjectUICategorySO, this.ItemSelectCommand);
                 AllItems[buildableGen.buildCategory].Add(item);
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (m_Subscription != null)
+                {
+                    m_Subscription.Dispose();
+                    m_Subscription = null;
+                    AllItems?.Clear();
+                }
             }
         }
 
@@ -95,12 +134,12 @@ namespace Johnny.SimDungeon
     public class CategoryObjectsPanelView : AnimationUIView
     {
         [SerializeField] private UIViewPositionAnimation m_AnimationPanel;
-        [SerializeField] private CategoryObjectsListView m_ListView;
+        [SerializeField] private ListView m_ListView;
         private CategoryObjectsPanelViewModel m_ViewModel;
 
         protected override void Awake()
         {
-            m_ViewModel = new CategoryObjectsPanelViewModel(BuildableAssets.Instance.buildableGenAssets);
+            m_ViewModel = new CategoryObjectsPanelViewModel(BuildableAssets.Instance.buildableGenAssets, Messenger.Default);
             this.SetDataContext(m_ViewModel);
 
             var serviceContainer = Context.GetApplicationContext().GetContainer();
@@ -112,6 +151,7 @@ namespace Johnny.SimDungeon
             var bindingSet = this.CreateBindingSet<CategoryObjectsPanelView, CategoryObjectsPanelViewModel>();
 
             //bindingSet.Bind(this.m_AnimationPanel).For(v => v.Show).To(vm => vm.IsVisible).OneWay();
+            bindingSet.Bind(this).For(v => v.Visibility).To(vm => vm.Visibility).OneWay();
             bindingSet.Bind(this.m_ListView).For(v => v.Items).To(vm => vm.Items).OneWay();
 
             bindingSet.Build();

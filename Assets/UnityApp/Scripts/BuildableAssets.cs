@@ -45,7 +45,6 @@ namespace Johnny.SimDungeon
             }
         }
 
-
         public BuildableGen GetBuildableGen(BuildableObjectSO buildableObjectSO)
         {
             if (m_BuildableGenMap.TryGetValue(buildableObjectSO, out var buildableGen))

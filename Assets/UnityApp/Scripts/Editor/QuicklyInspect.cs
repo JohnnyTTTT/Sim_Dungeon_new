@@ -26,7 +26,7 @@ namespace Johnny.SimDungeon
         [Button]
         private void BuildDungeon()
         {
-            DungeonController.Instance.BuildDungeon();
+            DungeonController.Instance.BuildDungeonEditor();
         }
         [Button]
         private void DestroyDungeon()

@@ -58,6 +58,7 @@ namespace Johnny.SimDungeon
         }
         private GridType m_GridType;
 
+        [ShowInInspector]
         public DestroyMode DestroyMode
         {
             get
@@ -197,7 +198,7 @@ namespace Johnny.SimDungeon
 
         public void GridModeReset()
         {
-            if (m_BuildableObjectsPanelViewModel.SelectedItem != null)
+            if (m_BuildableObjectsPanelViewModel != null && m_BuildableObjectsPanelViewModel.SelectedItem != null)
             {
                 m_BuildableObjectsPanelViewModel.SetSelectedItem(null);
             }
@@ -209,6 +210,7 @@ namespace Johnny.SimDungeon
             m_BuildableObjectDestroyer.SetInputGridModeReset();
             m_BuildableObjectSelector.SetInputGridModeReset();
             SetGridType(GridType.Nothing);
+            DestroyMode = DestroyMode.None;
         }
 
         public void SetActiveGridModeInAllGrids(GridMode gridMode)
@@ -241,26 +243,6 @@ namespace Johnny.SimDungeon
 
         }
 
-        public void SetInputBuildableObjectClockwiseRotation(bool clockwise)
-        {
-
-            foreach (var easyGridBuilderPro in m_GridManager.GetEasyGridBuilderProSystemsList())
-            {
-                if (clockwise)
-                {
-                    easyGridBuilderPro.SetInputBuildableObjectClockwiseRotation(true);
-                }
-                else
-                {
-                    easyGridBuilderPro.SetInputBuildableObjectCounterClockwiseRotation(true);
-                }
-            }
-        }
-
-
-
-
-
         public void SetGridType(GridType type)
         {
             if (GridType != type)
@@ -291,7 +273,6 @@ namespace Johnny.SimDungeon
                 }
             }
         }
-
 
 
 
@@ -439,6 +420,37 @@ namespace Johnny.SimDungeon
 
             //ProgrammaticMeshManager.Instance.UpdateMesh();
         }
+
+        #region Input
+        public void SetInputBuildableObjectClockwiseRotation()
+        {
+            foreach (var easyGridBuilderPro in m_GridManager.GetEasyGridBuilderProSystemsList())
+            {
+                easyGridBuilderPro.SetInputBuildableObjectClockwiseRotation(true);
+            }
+        }
+        public void SetInputBuildableObjectClockwiseRotationComplete()
+        {
+            foreach (EasyGridBuilderPro easyGridBuilderPro in GridManager.Instance.GetEasyGridBuilderProSystemsList())
+            {
+                easyGridBuilderPro.SetInputBuildableObjectClockwiseRotationComplete();
+            }
+        }
+        public void SetInputBuildableObjectCounterClockwiseRotation()
+        {
+            foreach (EasyGridBuilderPro easyGridBuilderPro in GridManager.Instance.GetEasyGridBuilderProSystemsList())
+            {
+                easyGridBuilderPro.SetInputBuildableObjectCounterClockwiseRotation();
+            }
+        }
+        public void SetInputBuildableObjectCounterClockwiseRotationComplete()
+        {
+            foreach (EasyGridBuilderPro easyGridBuilderPro in GridManager.Instance.GetEasyGridBuilderProSystemsList())
+            {
+                easyGridBuilderPro.SetInputBuildableObjectCounterClockwiseRotationComplete();
+            }
+        }
+        #endregion Input
 
         #region Create Entity
         private void CreateGroundForCellElement(Element_LargeCell cell)

@@ -65,7 +65,7 @@ namespace Johnny.SimDungeon
         }
         private static ElementManager_SmallCell s_Instance;
 
-        public void Init(EasyGridBuilderPro easyGridBuilder)
+        public void Initialize(EasyGridBuilderPro easyGridBuilder)
         {
             for (int x = 0; x < easyGridBuilder.GetGridWidth(); x++)
             {
@@ -78,9 +78,9 @@ namespace Johnny.SimDungeon
             }
             Debug.Log($"[-----System-----] : DataManager_Tile inited , tile count <{map.Count}>");
         }
-        public void PostInit()
+        public void Dispose()
         {
-
+            map?.Clear();
         }
 
         public override Element_SmallCell GetElement(Vector3 worldPosition)
@@ -119,11 +119,6 @@ namespace Johnny.SimDungeon
             return GetElement(coord + DirectionUtility.DOWN);
         }
 
-        public void UnInit()
-        {
-            map.Clear();
-        }
-
         private void OnDrawGizmos()
         {
             if (drawGizmos)
@@ -134,5 +129,7 @@ namespace Johnny.SimDungeon
                 }
             }
         }
+
+
     }
 }

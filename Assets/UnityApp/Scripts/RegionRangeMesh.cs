@@ -18,6 +18,11 @@ namespace Johnny.SimDungeon
 
         [SerializeField] private MeshFilter m_MeshFilter;
 
+        private void OnDestroy()
+        {
+            Dispose();
+        }
+
         private void BuildRegionMeshAtlas(HashSet<Vector2Int> regionCells, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs0)
         {
             var atlasUnit = AtlasUtility.GetAtlasUnitSize();

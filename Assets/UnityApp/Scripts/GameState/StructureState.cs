@@ -14,13 +14,8 @@ namespace Johnny.SimDungeon
     public class StructureState : IGameState
     {
         public GameState StateID => GameState.Structure;
-
-
-
-
         private GameStateManager manager;
         private GridManager m_GridManager;
-        public DestroyMode destroyMode;
 
         public StructureState(GameStateManager manager)
         {
@@ -39,7 +34,7 @@ namespace Johnny.SimDungeon
 
         public void Exit()
         {
-            destroyMode = DestroyMode.None;
+            //destroyMode = DestroyMode.None;
             //BindingService.BuildableObjectsPanelViewModel.ActiveCategoryObjectItemView = null;
             //BindingService.CategoryObjectsPanelViewModel.ActiveBuildCategory = BuildCategory.None;
         }

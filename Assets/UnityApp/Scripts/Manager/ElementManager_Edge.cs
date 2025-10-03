@@ -117,7 +117,7 @@ namespace Johnny.SimDungeon
             verticalMap.Clear();
         }
 
-        public void Init(FlowTilemapEdgeDatabase edges)
+        public void Initialize(FlowTilemapEdgeDatabase edges)
         {
             horizontalMap.Clear();
             verticalMap.Clear();
@@ -172,6 +172,12 @@ namespace Johnny.SimDungeon
                     }
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            horizontalMap?.Clear();
+            verticalMap?.Clear();
         }
 
         public IEnumerable<Element_Edge> GetAllElements()
