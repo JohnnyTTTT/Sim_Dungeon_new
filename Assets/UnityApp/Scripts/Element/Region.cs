@@ -12,15 +12,14 @@ namespace Johnny.SimDungeon
     public class Region : Element
     {
         public string name;
+        public Vector3 center;
         public RoomType roomType;
+        public Color roomColor;
+
         public HashSet<Vector2Int> containedLargeCells = new HashSet<Vector2Int>();
         public HashSet<Vector2Int> containedSmallCells = new HashSet<Vector2Int>();
-        public bool isClosed;
 
-        public BuildableGenAssets biome;
-        public Color roomColor;
-        public Bounds bounds;
-        public Vector3 center;
+
 
         public void Init(string n, RoomType type)
         {
@@ -71,9 +70,11 @@ namespace Johnny.SimDungeon
 
         public void CalculateBounds()
         {
+            if (containedLargeCells.Count <= 0) return;
+
             // 初始化 bounds
             var worldPosition = CoordUtility.LargeCoordToWorldPosition(containedLargeCells.First());
-            bounds = new Bounds(worldPosition, Vector3.zero);
+            var bounds = new Bounds(worldPosition, Vector3.zero);
 
             // 包含所有格子
             foreach (var cell in containedLargeCells)
@@ -102,18 +103,19 @@ namespace Johnny.SimDungeon
 #if UNITY_EDITOR
         public void DrawGizmos()
         {
-            foreach (var item in containedLargeCells)
-            {
-                var worldPosition = CoordUtility.LargeCoordToWorldPosition(item);
-                GizmoUnitily.DrawTwoSizeCube(worldPosition, roomColor, true);
-}
-            Color.RGBToHSV(roomColor, out float h, out float s, out float v);
-            v *= 0.3f; 
-            var darker = Color.HSVToRGB(h, s, v);
             foreach (var item in containedSmallCells)
             {
                 var worldPosition = CoordUtility.SmallCoordToWorldPosition(item);
-                GizmoUnitily.DrawOneSizeCube(worldPosition, darker, true);
+                GizmoUnitily.DrawOneSizeCube(worldPosition, roomColor, true);
+            }
+
+            Color.RGBToHSV(roomColor, out float h, out float s, out float v);
+            v *= 0.5f;
+            var darker = Color.HSVToRGB(h, s, v);
+            foreach (var item in containedLargeCells)
+            {
+                var worldPosition = CoordUtility.LargeCoordToWorldPosition(item);
+                GizmoUnitily.DrawTwoSizeCube(worldPosition, darker, true);
             }
             GizmoUnitily.DrawLabel(center, name);
         }

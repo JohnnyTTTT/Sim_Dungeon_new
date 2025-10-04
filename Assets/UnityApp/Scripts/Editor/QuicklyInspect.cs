@@ -27,25 +27,25 @@ namespace Johnny.SimDungeon
         [Button]
         private void BuildDungeon()
         {
-            DungeonController.Instance.BuildDungeonEditor();
+            DungeonManager.Instance.BuildDungeonEditor();
         }
         [Button]
         private void DestroyDungeon()
         {
-            DungeonController.Instance.DestroyGroundDungeon();
+            DungeonManager.Instance.DestroyGroundDungeon();
         }
 
         [Title("Underground")]
         [Button]
         private void BuildUnderDungeon()
         {
-            DungeonController.Instance.BuildUndergroundDungeonEditor();
+            DungeonManager.Instance.BuildUndergroundDungeonEditor();
         }
 
         [Button]
         private void DestroyUnderDungeon()
         {
-            DungeonController.Instance.DestroyUndergroundDungeon();
+            DungeonManager.Instance.DestroyUndergroundDungeon();
         }
 
         [Title("Function")]

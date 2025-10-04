@@ -2,6 +2,7 @@ using DungeonArchitect;
 using Sirenix.OdinInspector;
 using SoulGames.EasyGridBuilderPro;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static UnityEditor.Rendering.FilterWindow;
@@ -19,7 +20,6 @@ namespace Johnny.SimDungeon
     {
         //public Element_SmallCell[] neighbors = new Element_SmallCell[4];
         public Vector2Int coord;
-        public Vector3 worldPosition;
         public SmallCellType cellType
         {
             get
@@ -39,9 +39,6 @@ namespace Johnny.SimDungeon
         public Element_SmallCell(Vector2Int vector)
         {
             coord = vector;
-            worldPosition = CoordUtility.SmallCoordToWorldPosition(coord) + new Vector3(0.5f, 0f, 0.5f);
-            //parentCell = ElementManager_LargeCell.Instance.GetElement(worldPosition);
-
         }
 
         public override string ToString()
@@ -58,6 +55,7 @@ namespace Johnny.SimDungeon
                 SmallCellType.Wall => Color.red,
                 //SmallCellType.Door => Color.green,
             };
+            var worldPosition = CoordUtility.SmallCoordToWorldPosition(coord);
             GizmoUnitily.DrawOneSizeCube(worldPosition, color, true);
         }
     }
@@ -88,7 +86,18 @@ namespace Johnny.SimDungeon
                     map.Add(newData.coord, newData);
                 }
             }
-            Debug.Log($"[-----System-----] : DataManager_Tile inited , tile count <{map.Count}>");
+            Debug.Log($"[-----System-----] : ElementManager_SamllCell data inited , SmallCell count <{map.Count}>");
+        }
+
+        public void LoadElements(List<SmallElementSaveData> smallElementSaveDatas)
+        {
+            foreach (var cellSaveData in smallElementSaveDatas)
+            {
+                var element = new Element_SmallCell(cellSaveData.coord);
+                element.cellType = cellSaveData.smallCellType;
+                map[element.coord] = element;
+            }
+            Debug.Log($"[-----System-----] : ElementManager_SamllCell data loaded , SmallCell count <{map.Count}>");
         }
 
         public void PostInit()
@@ -126,6 +135,8 @@ namespace Johnny.SimDungeon
         {
             return GetElement(coord + DirectionUtility.LEFT);
         }
+
+
 
         public Element_SmallCell GetUpCellFromCoord(Vector2Int coord)
         {

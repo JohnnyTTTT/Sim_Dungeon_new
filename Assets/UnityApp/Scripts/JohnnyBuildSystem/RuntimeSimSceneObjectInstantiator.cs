@@ -126,7 +126,7 @@ namespace Johnny.SimDungeon
                 gameObj.transform.rotation = rotation;
                 gameObj.transform.localScale = scale;
 
-                SpawnManager.Instance.spwanedEntityForEditor.Add(gameObj.GetComponent<Entity>());
+                //SpawnManager.Instance.spwanedEntityForEditor.Add(gameObj.GetComponent<Entity>());
                 return gameObj;
             }
 

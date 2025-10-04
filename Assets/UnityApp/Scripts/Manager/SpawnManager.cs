@@ -39,7 +39,6 @@ namespace Johnny.SimDungeon
 
         [Title("Global Settings")]
         public Shader WallShader;
-        public List<Entity> spwanedEntityForEditor = new List<Entity>();
 
         [Title("Easy GridBuilder Pro Settings")]
 
@@ -86,7 +85,10 @@ namespace Johnny.SimDungeon
         private GridMode m_GridMode;
 
         public EasyGridBuilderProXZ m_EasyGridBuilderPro_SmallCell;
+        public BoxCollider m_GridSmallCellCollider;
+
         public EasyGridBuilderProXZ m_EasyGridBuilderPro_LargeCell;
+        public BoxCollider m_LargeCellCollider;
 
         [Title("Default BuildableGridObjectSO")]
         public BuildableCornerObjectSO defaultFloor;
@@ -109,6 +111,9 @@ namespace Johnny.SimDungeon
 
         private void Start()
         {
+            m_GridSmallCellCollider = m_EasyGridBuilderPro_SmallCell.GetComponent<BoxCollider>();
+            m_LargeCellCollider = m_EasyGridBuilderPro_LargeCell.GetComponent<BoxCollider>();
+
             var serviceContainer = Context.GetApplicationContext().GetContainer();
             m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
             m_BuildableObjectsPanelViewModel = serviceContainer.Resolve<BuildableObjectsPanelViewModel>();
@@ -138,43 +143,23 @@ namespace Johnny.SimDungeon
             }
         }
 
-       
-        public void Init()
+        private void OnDestroy()
         {
-            if (Application.isPlaying)
-            {
-                if (m_GridManager.TryGetGridBuiltObjectsManager(out var gridBuiltObjectsManager))
-                {
-                    var objs = gridBuiltObjectsManager.GetBuiltObjectsList();
-                    foreach (var item in objs)
-                    {
-                        if (item.TryGetComponent<Entity>(out var entity))
-                        {
-                            //if (item is Entity_Door door)
-                            //{
-                            //    doors.Add(door);
-                            //}
-                            entity.UpdateData();
-                        }
-                    }
-                }
-            }
-            else
-            {
-                foreach (var entity in spwanedEntityForEditor)
-                {
-                    entity.UpdateData();
-                }
-                spwanedEntityForEditor.Clear();
-            }
-
-
-
-            //foreach (var item in doors)
+            //if (m_GridManager.TryGetGridBuiltObjectsManager(out var gridBuiltObjectsManager))
             //{
-            //    item.CutWall();
+            //    var objs = gridBuiltObjectsManager.GetBuiltObjectsList();
+            //    for (int i = objs.Count - 1; i >= 0; i--)
+            //    {
+            //        DestroyImmediate(objs[i].gameObject);
+            //    }
             //}
+            m_CandidateAreaExpandProxies.Clear();
+            m_CreatedBuildableEdgeObject.Clear();
+        }
 
+        public void Initialized()
+        {
+            m_CreatedBuildableEdgeObject.Clear();
         }
 
         public void SetInputActiveBuildableObjectSO(BuildableObjectSO buildableObjectSO, GridType gridType)
@@ -259,22 +244,28 @@ namespace Johnny.SimDungeon
                 switch (type)
                 {
                     case GridType.Undefined:
-                        small.gameObject.SetActive(false);
-                        large.gameObject.SetActive(false);
+                        //small.gameObject.SetActive(false);
+                        //large.gameObject.SetActive(false);
                         break;
                     case GridType.Nothing:
-                        small.gameObject.SetActive(false);
-                        large.gameObject.SetActive(false);
+                        //small.gameObject.SetActive(false);
+                        //large.gameObject.SetActive(false);
+                        m_LargeCellCollider.enabled = false;
+                        m_GridSmallCellCollider.enabled = false;
                         GridManager.Instance.SetActiveGridSystem(small);
                         break;
                     case GridType.Large:
-                        large.gameObject.SetActive(true);
-                        small.gameObject.SetActive(false);
+                        //large.gameObject.SetActive(true);
+                        //small.gameObject.SetActive(false);
+                        m_LargeCellCollider.enabled = true;
+                        m_GridSmallCellCollider.enabled = false;
                         GridManager.Instance.SetActiveGridSystem(large);
                         break;
                     case GridType.Small:
-                        large.gameObject.SetActive(false);
-                        small.gameObject.SetActive(true);
+                        //large.gameObject.SetActive(false);
+                        //small.gameObject.SetActive(true);
+                        m_LargeCellCollider.enabled = false;
+                        m_GridSmallCellCollider.enabled = true;
                         GridManager.Instance.SetActiveGridSystem(small);
                         break;
                 }
@@ -285,7 +276,7 @@ namespace Johnny.SimDungeon
 
         private void OnBuildableObjectPlaced(EasyGridBuilderPro easyGridBuilderPro, BuildableObject buildableObject)
         {
-            if (!WorldManager.Instance.m_IsWorldReady) return;
+            //if (!WorldManager.Instance.m_IsWorldReady) return;
             if (buildableObject.TryGetComponent<Entity>(out var entity))
             {
 
@@ -334,25 +325,7 @@ namespace Johnny.SimDungeon
         }
 
 
-        private void OnDestroy()
-        {
-            if (m_GridManager.TryGetGridBuiltObjectsManager(out var gridBuiltObjectsManager))
-            {
-                var objs = gridBuiltObjectsManager.GetBuiltObjectsList();
-                for (int i = objs.Count - 1; i >= 0; i--)
-                {
-                    DestroyImmediate(objs[i].gameObject);
-                }
-
-            }
-            spwanedEntityForEditor.Clear();
-            m_CandidateAreaExpandProxies.Clear();
-            m_CreatedBuildableEdgeObject.Clear();
-        }
-
-
-
-
+   
 
         public GridType GetGridTypeFromEasyGridBuilderPro(EasyGridBuilderPro gridBuilderPro)
         {
@@ -366,8 +339,6 @@ namespace Johnny.SimDungeon
             }
             return GridType.Nothing;
         }
-
-
 
         private void OnGridObjectBoxPlacementFinalized(EasyGridBuilderPro easyGridBuilderPro)
         {
@@ -532,7 +503,7 @@ namespace Johnny.SimDungeon
 
         private void CreateWallForEdgeElement(Element_Edge edge)
         {
-            var postion = edge.worldPosition;
+            var postion = CoordUtility.EdgeCoordToWorldPosition(edge.coord,edge.horizontalEdge);
             Quaternion rotation;
             if (edge.horizontalEdge)
             {

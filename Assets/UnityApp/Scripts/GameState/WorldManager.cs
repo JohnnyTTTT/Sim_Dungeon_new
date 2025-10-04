@@ -44,12 +44,11 @@ namespace Johnny.SimDungeon
         private static WorldManager s_Instance;
 
         public static event Action OnWorldCreated;
-        
+
         [Title("Dev")]
-        public DevOptions devOption;
         public DevDungenCreateMode dungenCreateMode;
         public bool loadMode;
-
+        private bool m_IsLoaded;
 
         [Title("Grid System")]
         public DisablerController disablerController_SmallCell;
@@ -64,18 +63,15 @@ namespace Johnny.SimDungeon
         public bool m_IsWorldReady;
         private MainGameViewModel m_MainGameViewModel;
 
+
         private void Start()
         {
-            if (devOption == DevOptions.Nothing)
-            {
-                OnWorldCreated?.Invoke();
-                return;
-            }
-            DungeonBuildListener.OnPostDungeonBuildAction += OnPostDungeonBuildAction;
+            DungeonBuildListener.OnDungeonMarkersEmittedAction += OnDungeonMarkersEmittedAction;
             //DungeonController.Instance.OnPostDungeonBuildAction += OnPostDungeonBuild;
             EasyGridBuilderPro.OnGridSystemCreated += OnGridSystemCreated;
             var serviceContainer = Context.GetApplicationContext().GetContainer();
             m_MainGameViewModel = serviceContainer.Resolve<MainGameViewModel>();
+
             switch (dungenCreateMode)
             {
                 case DevDungenCreateMode.Ground:
@@ -89,38 +85,14 @@ namespace Johnny.SimDungeon
                 default:
                     break;
             }
-        }
 
-        private void OnPostDungeonBuildAction(Dungeon dungeon, DungeonModel dungeonModel, LevelMarkerList sockets)
-        {
-            if (dungeon == DungeonController.Instance.dungeon)
-            {
-                m_IsGroundDeogunReady = true;
-            }
         }
-
-        private void OnGridSystemCreated(EasyGridBuilderPro easyGridBuilderPro)
-        {
-            if (easyGridBuilderPro == SpawnManager.Instance.m_EasyGridBuilderPro_LargeCell)
-            {
-                m_IsLargeGridReady = true;
-                var gridLarge = easyGridBuilderPro.GetActiveGrid() as GridXZ;
-                largeTilemapSize = new Vector2Int(gridLarge.GetWidth(), gridLarge.GetLength());
-            }
-            else if (easyGridBuilderPro == SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell)
-            {
-                m_IsSmallGridReady = true;
-                var gridSmall = easyGridBuilderPro.GetActiveGrid() as GridXZ;
-                smallTilemapSize = new Vector2Int(gridSmall.GetWidth(), gridSmall.GetLength());
-            }
-        }
-
 
         private IEnumerator CreateUndergroundWorld()
         {
 
             yield return new WaitForEndOfFrame();
-            RandomUtility.SetSeed((int)DungeonController.Instance.undergroundDungeon.Config.Seed);
+            RandomUtility.SetSeed((int)DungeonManager.Instance.undergroundDungeon.GetSeed());
             GameStateManager.Instance.Initialize();
             while (!m_IsLargeGridReady || !m_IsSmallGridReady)
             {
@@ -128,54 +100,19 @@ namespace Johnny.SimDungeon
             }
             Debug.Log("[-----System-----] : EGB 加载完毕");
             yield return new WaitForEndOfFrame();
-            DungeonController.Instance.DestroyUndergroundDungeon();
+            DungeonManager.Instance.DestroyUndergroundDungeon();
 
             yield return new WaitForEndOfFrame();
-            DungeonController.Instance.BuildUndergroundDungeon();
+            DungeonManager.Instance.BuildUndergroundDungeon();
 
         }
 
-        private IEnumerator CreateGroundWorld()
+        private void DatasInitialize()
         {
-            yield return new WaitForEndOfFrame();
+            var tilemap = DungeonManager.Instance.groundDungeon.dungeonModel.Tilemap;
 
-            Debug.Log("[-----System-----] : 世界开始加载");
-            RandomUtility.SetSeed((int)DungeonController.Instance.dungeon.Config.Seed);
-            GameStateManager.Instance.Initialize();
-
-            while (!m_IsLargeGridReady || !m_IsSmallGridReady)
-            {
-                yield return null;
-            }
-            Debug.Log("[-----System-----] : EGB 加载完毕");
-
-            yield return new WaitForEndOfFrame();
-            DungeonController.Instance.DestroyGroundDungeon();
-
-            yield return new WaitForEndOfFrame();
-            DungeonController.Instance.BuildGroundDungeon();
-
-            if (!loadMode)
-            { 
-            
-            }
-            while (!m_IsGroundDeogunReady)
-            {
-                yield return null;
-            }
-            Debug.Log("[-----System-----] : 地牢创建完毕");
-
-            yield return new WaitForEndOfFrame();
-            var gridFlowDungeonModel = DungeonController.Instance.dungeonModel;
-
-            //LargeCellDatas
-            Debug.Log(gridFlowDungeonModel.Tilemap.Cells.Count());
-            ElementManager_LargeCell.Instance.Initialize(gridFlowDungeonModel.Tilemap.Cells);
-
-            //EdgeDatas
-            ElementManager_Edge.Instance.Initialize(gridFlowDungeonModel.Tilemap.Edges);
-
-
+            ElementManager_LargeCell.Instance.Initialize(tilemap.Cells);
+            ElementManager_Edge.Instance.Initialize(tilemap.Edges);
             ElementManager_SmallCell.Instance.Initialize(SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell);
             ElementManager_Region.Instance.Initialize();
 
@@ -183,10 +120,40 @@ namespace Johnny.SimDungeon
             ElementManager_Region.Instance.PostInit();
 
             Debug.Log("[-----System-----] : 数据创建完毕");
+        }
 
+        private IEnumerator CreateGroundWorld()
+        {
+            Debug.Log("[-----System-----] : 世界开始加载");
+            RandomUtility.SetSeed(DungeonManager.Instance.groundDungeon.GetSeed());
+            GameStateManager.Instance.Initialize();
+            while (!m_IsLargeGridReady || !m_IsSmallGridReady)
+            {
+                yield return null;
+            }
+            Debug.Log("[-----System-----] : EGB 加载完毕");
 
-            ProgrammaticMeshManager.Instance.Init();
-            SpawnManager.Instance.Init();
+            if (!loadMode)
+            {
+                yield return new WaitForEndOfFrame();
+                DungeonManager.Instance.BuildGroundDungeon();
+                while (!m_IsGroundDeogunReady)
+                {
+                    yield return null;
+                }
+                Debug.Log("[-----System-----] : 地牢创建完毕");
+            }
+            else
+            {
+                Load();
+                while (!m_IsLoaded)
+                {
+                    yield return null;
+                }
+            }
+
+            ProgrammaticMeshManager.Instance.Initialized();
+            SpawnManager.Instance.Initialized();
 
             var disablerLargeCell = new HashSet<Vector2Int>();
             foreach (var item in ElementManager_LargeCell.Instance.GetAllElements())
@@ -217,25 +184,46 @@ namespace Johnny.SimDungeon
         [Button]
         public void Save()
         {
+            DataSeveLoadManager.Instance.Save();
             EasyGridBuilderProSaveSystem.Save();
-            //if (GridManager.Instance.TryGetGridSaveAndLoadManager(out var gridSaveAndLoadManager))
-            //{
-            //    gridSaveAndLoadManager.Save();
-            //}
         }
+
         [Button]
         public void Load()
         {
+            DataSeveLoadManager.Instance.Load();
             EasyGridBuilderProSaveSystem.Load();
-            //if (GridManager.Instance.TryGetGridSaveAndLoadManager(out var gridSaveAndLoadManager))
-            //{
-            //    gridSaveAndLoadManager.Save();
-            //}
+            m_IsLoaded = true;
+        }
+
+        private void OnDungeonMarkersEmittedAction(Dungeon dungeon, DungeonModel dungeonModel, LevelMarkerList sockets)
+        {
+            if (dungeon == DungeonManager.Instance.groundDungeon.dungeon)
+            {
+                DatasInitialize();
+                m_IsGroundDeogunReady = true;
+            }
+        }
+
+        private void OnGridSystemCreated(EasyGridBuilderPro easyGridBuilderPro)
+        {
+            if (easyGridBuilderPro == SpawnManager.Instance.m_EasyGridBuilderPro_LargeCell)
+            {
+                m_IsLargeGridReady = true;
+                var gridLarge = easyGridBuilderPro.GetActiveGrid() as GridXZ;
+                largeTilemapSize = new Vector2Int(gridLarge.GetWidth(), gridLarge.GetLength());
+            }
+            else if (easyGridBuilderPro == SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell)
+            {
+                m_IsSmallGridReady = true;
+                var gridSmall = easyGridBuilderPro.GetActiveGrid() as GridXZ;
+                smallTilemapSize = new Vector2Int(gridSmall.GetWidth(), gridSmall.GetLength());
+            }
         }
 
         private void OnDestroy()
         {
-            DungeonController.Instance.DestroyGroundDungeon();
+            DungeonManager.Instance.DestroyGroundDungeon();
             ElementManager_LargeCell.Instance.Dispose();
             ElementManager_Edge.Instance.Dispose();
             ElementManager_SmallCell.Instance.Dispose();

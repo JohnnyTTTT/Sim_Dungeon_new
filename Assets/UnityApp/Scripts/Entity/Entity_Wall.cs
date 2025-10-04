@@ -5,6 +5,8 @@ using SoulGames.EasyGridBuilderPro;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.AI.Navigation;
+using UnityEngine.AI;
 
 namespace Johnny.SimDungeon
 {
@@ -20,6 +22,12 @@ namespace Johnny.SimDungeon
         public Entity_SubEdge secondary;
 
         private Material[] m_Materials;
+        private NavMeshObstacle m_NavMeshObstacle;
+
+        protected override void Awake()
+        {
+            m_NavMeshObstacle = GetComponent<NavMeshObstacle>();
+        }
 
         protected override Vector3 GetOffset()
         {
@@ -30,13 +38,13 @@ namespace Johnny.SimDungeon
         {
             base.UpdateData();
             edgeElement.SetWallEntity(this);
-
         }
 
-        public void SetCutMaterial(bool value)
+        public void DoorInstalled(bool value)
         {
             if (Application.isPlaying)
             {
+                m_NavMeshObstacle.carving = false;
                 if (m_Materials == null)
                 {
                     m_Materials = new Material[2];
@@ -76,7 +84,8 @@ namespace Johnny.SimDungeon
         {
             if (drawGizmos)
             {
-                GizmoUnitily.DrawLine(transform.position + transform.right + new Vector3(0f, 1f, 0f), edgeElement.worldPosition, Color.blue);
+                var worldPosition = CoordUtility.LargeCoordToWorldPosition(edgeElement.coord);
+                GizmoUnitily.DrawLine(transform.position + transform.right + new Vector3(0f, 1f, 0f), worldPosition, Color.blue);
             }
         }
 

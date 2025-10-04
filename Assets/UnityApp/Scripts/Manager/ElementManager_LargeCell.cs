@@ -20,24 +20,13 @@ namespace Johnny.SimDungeon
     public class Element_LargeCell : Element
     {
         public LargelCellType cellType;
-
         private Entity_Floor m_Ground;
-        public Entity_Ceiling ceiling;
-
-        public Element_Edge horizontalEdge;
-        public Element_Edge verticalEdge;
-
-        public Entity_SubEdge horizontalSubEdge;
-        public Entity_SubEdge verticalSubEdge;
-
-        public Vector3 worldPosition;
         public Vector2Int coord;
 
 
         public Element_LargeCell(Vector2Int position)
         {
             coord = position;
-            worldPosition = CoordUtility.LargeCoordToWorldPosition(coord);
         }
 
         public void SetGroundEntity(Entity_Floor ground)
@@ -62,6 +51,7 @@ namespace Johnny.SimDungeon
 
         public void DrawGizmos()
         {
+            var worldPosition = CoordUtility.LargeCoordToWorldPosition(coord);
             GizmoUnitily.DrawTwoSizeCube(worldPosition, Color.green, true);
             GizmoUnitily.DrawLabel(coord, $"{coord} ");
         }
@@ -99,9 +89,19 @@ namespace Johnny.SimDungeon
                 element.cellType = cell.CellType == FlowTilemapCellType.Floor ? LargelCellType.Floor : LargelCellType.Empty;
                 map[coord] = element;
             }
-            Debug.Log($"[-----System-----] : DataManager Cell inited , Cell count <{map.Count}>");
+            Debug.Log($"[-----System-----] : ElementManager_LargeCell initialize , LargeCell count <{map.Count}>");
         }
 
+        public void LoadElements(List<LargeElementSaveData> largeElementsSaveData)
+        {
+            foreach (var cellSaveData in largeElementsSaveData)
+            {
+                var element = new Element_LargeCell(cellSaveData.coord);
+                element.cellType = cellSaveData.cellType;
+                map[element.coord] = element;
+            }
+            Debug.Log($"[-----System-----] : ElementManager_LargeCell data loaded , LargeCell count <{map.Count}>");
+        }
 
         public void Dispose()
         {

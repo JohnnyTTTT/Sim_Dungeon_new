@@ -22,7 +22,7 @@ namespace Johnny.SimDungeon
         {
             if (Application.isPlaying)
             {
-                return SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell.GetCellWorldPosition(coord, 0);
+                return SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell.GetCellWorldPosition(coord, 0) + new Vector3(0.5f, 0f, 0.5f);
             }
             else
             {
@@ -56,12 +56,24 @@ namespace Johnny.SimDungeon
         //Large
         public static Vector3 LargeCoordToWorldPosition(Vector2Int coord)
         {
-            return DungeonController.Instance.gridFlowDungeonQuery.TileCoordToWorldCoord(coord.ToIntVector2());
+            return DungeonManager.Instance.groundDungeon.TileCoordToWorldCoord(coord.ToIntVector2());
+        }
+
+        public static Vector3 EdgeCoordToWorldPosition(Vector2Int coord,bool horizontalEdge)
+        {
+            if (horizontalEdge)
+            {
+               return LargeCoordToWorldPosition(coord)+ Vector3.back;
+            }
+            else
+            {
+                return LargeCoordToWorldPosition(coord) + Vector3.left;
+            }
         }
 
         public static Vector2Int WorldPositionToLargeCoord(Vector3 coord)
         {
-            return DungeonController.Instance.dungeonModel.WorldPositionToTilemapCoord(coord).ToVector2Int();
+            return DungeonManager.Instance.groundDungeon.WorldPositionToTilemapCoord(coord).ToVector2Int();
         }
 
         public static bool IsLargeCoordInBounds(Vector2Int cellPosition)

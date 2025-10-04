@@ -92,7 +92,8 @@ namespace Johnny.SimDungeon
 
         private void CreateLargeCellDetection(Element_LargeCell cell, Color? color = null)
         {
-            var obj = Instantiate(m_LargeCellDetectionPrefab, cell.worldPosition, Quaternion.identity, transform);
+            var worldPosition = CoordUtility.LargeCoordToWorldPosition(cell.coord);
+            var obj = Instantiate(m_LargeCellDetectionPrefab, worldPosition, Quaternion.identity, transform);
             obj.name = cell.ToString();
             if (color != null)
             {
@@ -101,16 +102,16 @@ namespace Johnny.SimDungeon
             m_InstantiateLargeCells.Add(obj);
         }
 
-        private void CreateSmallCellDetection(Element_SmallCell cell, Color? color = null)
-        {
-            var obj = Instantiate(m_SmallCellDetectionPrefab, cell.worldPosition + new Vector3(0f, 0.6f, 0f), Quaternion.identity, transform);
-            obj.name = cell.ToString();
-            if (color != null)
-            {
-                obj.GetComponent<Renderer>().material.SetColor(s_BaseColor, color.Value);
-            }
-            m_InstantiateSmallCells.Add(obj);
-        }
+        //private void CreateSmallCellDetection(Element_SmallCell cell, Color? color = null)
+        //{
+        //    var obj = Instantiate(m_SmallCellDetectionPrefab, cell.worldPosition + new Vector3(0f, 0.6f, 0f), Quaternion.identity, transform);
+        //    obj.name = cell.ToString();
+        //    if (color != null)
+        //    {
+        //        obj.GetComponent<Renderer>().material.SetColor(s_BaseColor, color.Value);
+        //    }
+        //    m_InstantiateSmallCells.Add(obj);
+        //}
 
         private void Clear()
         {

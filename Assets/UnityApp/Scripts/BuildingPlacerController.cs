@@ -12,7 +12,7 @@ namespace Johnny.SimDungeon
     }
     public class BuildingPlacerController : MonoBehaviour
     {
-        [SerializeField] private DungeonController m_DungeonController;
+        [SerializeField] private DungeonManager m_DungeonController;
         [SerializeField] private InputActionReference m_AreaInputReference;
 
         private  PlaceMode m_PlaceMode;

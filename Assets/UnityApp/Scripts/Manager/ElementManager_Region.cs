@@ -41,11 +41,8 @@ namespace Johnny.SimDungeon
 
         private static int s_RegionID;
 
-
-
         public List<Region> regionList = new List<Region>();
         public Dictionary<Vector2Int, Region> mapForLargeCoord = new Dictionary<Vector2Int, Region>();
-
         public Dictionary<Vector2Int, Region> mapForSmallCoord = new Dictionary<Vector2Int, Region>();
 
         public bool drawGizmos;
@@ -68,6 +65,7 @@ namespace Johnny.SimDungeon
             CollectSmallCells(region);
             regionList.Add(region);
             s_RegionID++;
+            region.CalculateBounds();
             OnRegionCreate?.Invoke(region);
             return region;
         }
@@ -109,30 +107,27 @@ namespace Johnny.SimDungeon
         {
             foreach (var cell in ElementManager_LargeCell.Instance.GetAllElements())
             {
-                if (cell.cellType !=  LargelCellType.Floor) continue;
+                if (cell.cellType != LargelCellType.Floor) continue;
                 if (mapForLargeCoord.ContainsKey(cell.coord)) continue;
 
                 var regionCells = FloodFillLargeCoord(cell.coord);
                 if (regionCells != null && regionCells.Count > 0)
                 {
                     var newRegion = CreateRegion(RoomType.EmptyRoom, regionCells);
-                    newRegion.CalculateBounds();
+
                     //Debug.Log($"新区域（ID: {newRegion.name}）被创建，包含 {regionCells.Count} 个格子。区域总数 {Instance.regionList.Count}");
                 }
             }
+            Debug.Log($"[-----System-----] : ElementManager_Region postInit , Region count <{regionList.Count}>");
+        }
 
-            //foreach (var item in ElementManager_SmallCell.Instance.GetAllElements())
-            //{
-            //    if (item.cellType ==  FlowTilemapSmallCellType.Floor) continue;
-            //    if (item.region != null) continue;
-            //    var regionCells = FloodFill(cell);
-            //}
-
-
-            foreach (var item in regionList)
+        public void LoadElements(List<RegionSaveData> regionSaveDatas)
+        {
+            foreach (var data in regionSaveDatas)
             {
-
+                var newRegion = CreateRegion(data.roomType, data.containedLargeCells.ToHashSet());
             }
+            Debug.Log($"[-----System-----] : ElementManager_Region data loaded , Region count <{regionList.Count}>");
         }
 
         public void Dispose()
@@ -156,25 +151,23 @@ namespace Johnny.SimDungeon
 
         private void CollectSmallCells(Region region)
         {
-            //var position = region.containedLargeCells.First().worldPosition;
-
-            //var firstSmall = ElementManager_SmallCell.Instance.GetElement(position);
-            ////region.AddSamllCell(firstSmall);
-            //var regionCells = FloodFill(firstSmall);
-            //if (regionCells != null && regionCells.Count > 0)
-            //{
-
-            //    foreach (var cell in regionCells)
-            //    {
-            //        var oldRegion = GetRegionFromSmallCoord(cell.coord);
-            //        if (oldRegion != null)
-            //        {
-            //            oldRegion.RemoveSmallCell(cell);
-            //        }
-            //        region.AddSamllCell(cell);
-            //        cell.cellType =  SmallCellType.Floor;
-            //    }
-            //}
+            var worldPosition = CoordUtility.LargeCoordToWorldPosition(region.containedLargeCells.First());
+            var firstSmall = CoordUtility.WorldPositionToSmallCoord(worldPosition);
+            var regionCells = FloodFillSmallCoord(firstSmall);
+            if (regionCells != null && regionCells.Count > 0)
+            {
+                foreach (var coord in regionCells)
+                {
+                    var oldRegion = GetRegionFromSmallCoord(coord);
+                    if (oldRegion != null)
+                    {
+                        oldRegion.RemoveSmallCell(coord);
+                    }
+                    region.AddSamllCell(coord);
+                    var cell = ElementManager_SmallCell.Instance.GetElement(coord);
+                    cell.cellType = SmallCellType.Floor;
+                }
+            }
         }
 
         public Region GetRegionFromLargeCoord(Vector2Int coord)
@@ -225,7 +218,7 @@ namespace Johnny.SimDungeon
                     var neighbor = neighbors[i];
 
                     if (neighbor == null || visited.Contains(neighbor.coord)) continue;
-                    if (neighbor.cellType != SmallCellType.Empty) continue;
+                    if (neighbor.cellType == SmallCellType.Wall) continue;
 
                     var nCoord = neighbor.coord;
                     if (Mathf.Abs(nCoord.x - origin.x) > halfRange ||
@@ -281,8 +274,7 @@ namespace Johnny.SimDungeon
                     if (DirectionUtility.HasEdgeBetween(current, neighbor.coord, dir)) continue;
 
                     var nCoord = neighbor.coord;
-                    if (Mathf.Abs(nCoord.x - origin.x) > halfRange ||
-                        Mathf.Abs(nCoord.y - origin.y) > halfRange)
+                    if (Mathf.Abs(nCoord.x - origin.x) > halfRange || Mathf.Abs(nCoord.y - origin.y) > halfRange)
                     {
                         Debug.Log($"FloodFill LargeCell , 超出范围，跳过");
                         continue; // 超出范围，跳过
@@ -311,21 +303,23 @@ namespace Johnny.SimDungeon
 
                 // 对每个未访问的格子执行 FloodFill
                 var regionCells = FloodFillLargeCoord(cell, 150); // 或传入 maxRange
+
                 if (regionCells.Count == 0) continue; // 遇到边界，忽略
 
                 // 标记这些格子已访问
                 foreach (var c in regionCells)
+                {
                     visited.Add(c);
-
+                }
                 var oldRegion = GetRegionFromLargeCoord(regionCells.First());
 
                 if (!regionCells.SetEquals(oldRegion.containedLargeCells))
                 {
                     oldRegion.RemoveLargeCells(regionCells);
+                    oldRegion.CalculateBounds();
                     CalculateExist(oldRegion);
 
                     var newRegion = CreateRegion(RoomType.EmptyRoom, regionCells);
-                    newRegion.CalculateBounds();
 
                     CollectSmallCells(newRegion);
                     Debug.Log($"新区域（ID: {newRegion.name}）被创建，包含 {regionCells.Count} 个格子。区域总数 {Instance.regionList.Count}");

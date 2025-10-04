@@ -29,7 +29,7 @@ namespace Johnny.SimDungeon
 
         [SerializeField] private InvalidAreaMesh m_InvalidAreaMesh;
 
-        public void Init()
+        public void Initialized()
         {
             m_InvalidAreaMesh.UpdateMesh();
         }
