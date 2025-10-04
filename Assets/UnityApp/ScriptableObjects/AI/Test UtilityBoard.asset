@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Nodes:
   - rid: 2641057121401045133
-  - rid: 2641057122056143232
   - rid: 3657390277578457144
   - rid: 3657390277578457713
   - rid: 3657390277578457728
@@ -133,82 +132,6 @@ MonoBehaviour:
       type: {class: GetDecimalDecimal, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
       data:
         m_Value: 100
-    - rid: 2641057122056143232
-      type: {class: NodeUtilityBoardTask, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
-      data:
-        m_Id:
-          m_String: 786a387d-e397-4822-9d96-972e13cc80e3
-        m_Position: {x: -329, y: 3.5586777}
-        m_Ports:
-          m_Inputs: []
-          m_Outputs: []
-        m_Score:
-          m_Value:
-            m_Property:
-              rid: 3657390276252009070
-          m_Curve:
-            serializedVersion: 2
-            m_Curve:
-            - serializedVersion: 3
-              time: 0
-              value: 0
-              inSlope: 0
-              outSlope: 0
-              tangentMode: 0
-              weightedMode: 0
-              inWeight: 0
-              outWeight: 0
-            - serializedVersion: 3
-              time: 1
-              value: 1
-              inSlope: 0
-              outSlope: 0
-              tangentMode: 0
-              weightedMode: 0
-              inWeight: 0
-              outWeight: 0
-            m_PreInfinity: 2
-            m_PostInfinity: 2
-            m_RotationOrder: 4
-        m_Conditions:
-          m_Conditions:
-            m_Conditions: []
-        m_Name: Idle
-        m_OnExit:
-          m_Instructions:
-            m_Instructions: []
-        m_Instructions:
-          m_Instructions:
-            m_Instructions:
-            - rid: 3657390276252009113
-    - rid: 3657390276252009070
-      type: {class: GetDecimalStatValue, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
-      data:
-        m_Traits:
-          m_Property:
-            rid: 3657390276252009073
-        m_Stat:
-          m_Property:
-            rid: 3657390276252009072
-    - rid: 3657390276252009072
-      type: {class: GetStatInstance, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
-      data:
-        m_Stat: {fileID: 11400000, guid: 400a3043e7a741846bb28866417ef2b1, type: 2}
-    - rid: 3657390276252009073
-      type: {class: GetGameObjectSelf, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
-      data: 
-    - rid: 3657390276252009113
-      type: {class: InstructionCommonDebugText, ns: GameCreator.Runtime.VisualScripting, asm: GameCreator.Runtime.Core}
-      data:
-        m_Breakpoint: 0
-        m_IsEnabled: 1
-        m_Message:
-          m_Property:
-            rid: 3657390276252009114
-    - rid: 3657390276252009114
-      type: {class: GetStringString, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
-      data:
-        m_Value: Idle
     - rid: 3657390277578457144
       type: {class: NodeUtilityBoardTask, ns: GameCreator.Runtime.Behavior, asm: GameCreator.Runtime.Behavior}
       data:
@@ -305,19 +228,19 @@ MonoBehaviour:
               time: 0
               value: 1
               inSlope: Infinity
-              outSlope: -4.396695
+              outSlope: -3.3619947
               tangentMode: 1
               weightedMode: 3
               inWeight: 0
-              outWeight: 0.22744356
+              outWeight: 0.20112777
             - serializedVersion: 3
               time: 1
               value: 0
-              inSlope: -0.07166135
-              outSlope: -0.07166135
+              inSlope: -0.20843881
+              outSlope: -0.20843881
               tangentMode: 0
               weightedMode: 1
-              inWeight: 0.7942507
+              inWeight: 0.8909775
               outWeight: 0.33333334
             m_PreInfinity: 2
             m_PostInfinity: 2
@@ -347,7 +270,7 @@ MonoBehaviour:
       data:
         m_Id:
           m_String: 0c9b06e1-dd54-425b-9b91-8218b20c2ed9
-        m_Position: {x: -328.509, y: 284.40363}
+        m_Position: {x: -337.63422, y: -4.5625877}
         m_Ports:
           m_Inputs: []
           m_Outputs: []
@@ -382,7 +305,7 @@ MonoBehaviour:
         m_Conditions:
           m_Conditions:
             m_Conditions: []
-        m_Graph: {fileID: 0}
+        m_Graph: {fileID: 11400000, guid: 9d8f06a6dff687044b67fb20a9923bd3, type: 2}
     - rid: 3657390277578457731
       type: {class: GetDecimalStatValue, ns: GameCreator.Runtime.Stats, asm: GameCreator.Runtime.Stats}
       data:

@@ -13,6 +13,11 @@ namespace Johnny.SimDungeon
 
         public override GameObject AddGameObject(GameObjectDungeonThemeItem gameObjectProp, Matrix4x4 matrix, IDungeonSceneObjectInstantiator objectInstantiator)
         {
+            if (WorldManager.Instance.loadMode)
+            {
+                return null;
+            }
+
             if (gameObjectProp == null) return null;
             var MeshTemplate = gameObjectProp.Template;
             string NodeId = gameObjectProp.NodeId;
@@ -68,71 +73,71 @@ namespace Johnny.SimDungeon
         //    transform.localScale = _scale;
         //}
 
-        public override void OnDungeonBuildStart()
-        {
-            base.OnDungeonBuildStart();
-            pooledObjects.Clear();
-            var items = GameObject.FindObjectsOfType<DungeonSceneProviderData>();
-            foreach (var item in items)
-            {
-                if (item == null || item.externallyManaged) continue;
-                if (item.dungeon != this.dungeon) continue;
-                if (item.NodeId == null) continue;
+        //public override void OnDungeonBuildStart()
+        //{
+        //    base.OnDungeonBuildStart();
+        //    pooledObjects.Clear();
+        //    var items = GameObject.FindObjectsOfType<DungeonSceneProviderData>();
+        //    foreach (var item in items)
+        //    {
+        //        if (item == null || item.externallyManaged) continue;
+        //        if (item.dungeon != this.dungeon) continue;
+        //        if (item.NodeId == null) continue;
 
-                if (!pooledObjects.ContainsKey(item.NodeId))
-                {
-                    pooledObjects.Add(item.NodeId, new Queue<GameObject>());
-                }
-                pooledObjects[item.NodeId].Enqueue(item.gameObject);
-            }
-        }
+        //        if (!pooledObjects.ContainsKey(item.NodeId))
+        //        {
+        //            pooledObjects.Add(item.NodeId, new Queue<GameObject>());
+        //        }
+        //        pooledObjects[item.NodeId].Enqueue(item.gameObject);
+        //    }
+        //}
 
-        public override void OnDungeonBuildStop()
-        {
-            //// Destroy all unused objects from the pool
-            //foreach (var objects in pooledObjects.Values)
-            //{
-            //    foreach (var obj in objects)
-            //    {
-            //        if (Application.isPlaying)
-            //        {
-            //            if (obj.TryGetComponent<Entity>(out var entity))
-            //            {
-            //                Debug.Log(entity.name, entity);
-            //                if (!entity.TryDestroy())
-            //                {
-            //                    Debug.Log($"Destroy entity error - {entity}", entity);
-            //                }
-            //            }
-            //        }
-            //        else
-            //        {
-            //            DestroyImmediate(obj);
-            //        }
-            //    }
-            //}
+        //public override void OnDungeonBuildStop()
+        //{
+        //    //// Destroy all unused objects from the pool
+        //    //foreach (var objects in pooledObjects.Values)
+        //    //{
+        //    //    foreach (var obj in objects)
+        //    //    {
+        //    //        if (Application.isPlaying)
+        //    //        {
+        //    //            if (obj.TryGetComponent<Entity>(out var entity))
+        //    //            {
+        //    //                Debug.Log(entity.name, entity);
+        //    //                if (!entity.TryDestroy())
+        //    //                {
+        //    //                    Debug.Log($"Destroy entity error - {entity}", entity);
+        //    //                }
+        //    //            }
+        //    //        }
+        //    //        else
+        //    //        {
+        //    //            DestroyImmediate(obj);
+        //    //        }
+        //    //    }
+        //    //}
 
-            //pooledObjects.Clear();
-        }
+        //    //pooledObjects.Clear();
+        //}
 
-        public override void InvalidateNodeCache(string NodeId)
-        {
-            if (pooledObjects.ContainsKey(NodeId))
-            {
-                foreach (var obj in pooledObjects[NodeId])
-                {
-                    if (Application.isPlaying)
-                    {
+        //public override void InvalidateNodeCache(string NodeId)
+        //{
+        //    if (pooledObjects.ContainsKey(NodeId))
+        //    {
+        //        foreach (var obj in pooledObjects[NodeId])
+        //        {
+        //            if (Application.isPlaying)
+        //            {
 
-                        Destroy(obj);
-                    }
-                    else
-                    {
-                        DestroyImmediate(obj);
-                    }
-                }
-                pooledObjects[NodeId].Clear();
-            }
-        }
+        //                Destroy(obj);
+        //            }
+        //            else
+        //            {
+        //                DestroyImmediate(obj);
+        //            }
+        //        }
+        //        pooledObjects[NodeId].Clear();
+        //    }
+        //}
     }
 }

@@ -88,7 +88,7 @@ MonoBehaviour:
     - rid: 3657390272914129616
       type: {class: GetStringString, ns: GameCreator.Runtime.Common, asm: GameCreator.Runtime.Core}
       data:
-        m_Value: EAT
+        m_Value: IDLE
     - rid: 3657390272914129741
       type: {class: InstructionCommonTimeWait, ns: GameCreator.Runtime.VisualScripting, asm: GameCreator.Runtime.Core}
       data:
@@ -108,7 +108,7 @@ MonoBehaviour:
       data:
         m_Id:
           m_String: 0a55e0b8-4c1e-40e5-b66f-5214a00682c2
-        m_Position: {x: -210, y: 103}
+        m_Position: {x: -210, y: 102}
         m_Ports:
           m_Inputs:
           - rid: 3657390277578457725

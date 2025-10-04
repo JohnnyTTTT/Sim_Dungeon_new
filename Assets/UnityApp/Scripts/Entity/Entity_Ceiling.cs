@@ -12,9 +12,9 @@ namespace Johnny.SimDungeon
 
         protected override void SetParentCellElement_JustUseThisFunction(Element_LargeCell element)
         {
-            base.SetParentCellElement_JustUseThisFunction(element);
-            element.ceiling = this;
-            name = $"Ceiling - {element.Data.TileCoord.x},{element.Data.TileCoord.y}";
+            //base.SetParentCellElement_JustUseThisFunction(element);
+            //element.ceiling = this;
+            //name = $"Ceiling - {element.Data.TileCoord.x},{element.Data.TileCoord.y}";
         }
 
 

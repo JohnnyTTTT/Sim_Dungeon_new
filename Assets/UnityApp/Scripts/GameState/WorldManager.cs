@@ -6,7 +6,10 @@ using SoulGames.EasyGridBuilderPro;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using static Johnny.SimDungeon.ElementManager_Edge;
+using static Johnny.SimDungeon.ElementManager_LargeCell;
 
 namespace Johnny.SimDungeon
 {
@@ -14,6 +17,7 @@ namespace Johnny.SimDungeon
     {
         None,
         Nothing,
+        NoCreate,
         NoData,
     }
 
@@ -40,10 +44,12 @@ namespace Johnny.SimDungeon
         private static WorldManager s_Instance;
 
         public static event Action OnWorldCreated;
-
+        
         [Title("Dev")]
         public DevOptions devOption;
         public DevDungenCreateMode dungenCreateMode;
+        public bool loadMode;
+
 
         [Title("Grid System")]
         public DisablerController disablerController_SmallCell;
@@ -64,7 +70,7 @@ namespace Johnny.SimDungeon
             {
                 OnWorldCreated?.Invoke();
                 return;
-            } 
+            }
             DungeonBuildListener.OnPostDungeonBuildAction += OnPostDungeonBuildAction;
             //DungeonController.Instance.OnPostDungeonBuildAction += OnPostDungeonBuild;
             EasyGridBuilderPro.OnGridSystemCreated += OnGridSystemCreated;
@@ -149,6 +155,10 @@ namespace Johnny.SimDungeon
             yield return new WaitForEndOfFrame();
             DungeonController.Instance.BuildGroundDungeon();
 
+            if (!loadMode)
+            { 
+            
+            }
             while (!m_IsGroundDeogunReady)
             {
                 yield return null;
@@ -157,12 +167,19 @@ namespace Johnny.SimDungeon
 
             yield return new WaitForEndOfFrame();
             var gridFlowDungeonModel = DungeonController.Instance.dungeonModel;
+
+            //LargeCellDatas
+            Debug.Log(gridFlowDungeonModel.Tilemap.Cells.Count());
             ElementManager_LargeCell.Instance.Initialize(gridFlowDungeonModel.Tilemap.Cells);
+
+            //EdgeDatas
             ElementManager_Edge.Instance.Initialize(gridFlowDungeonModel.Tilemap.Edges);
+
+
             ElementManager_SmallCell.Instance.Initialize(SpawnManager.Instance.m_EasyGridBuilderPro_SmallCell);
             ElementManager_Region.Instance.Initialize();
 
-            ElementManager_Edge.Instance.PostInit();
+            ElementManager_SmallCell.Instance.PostInit();
             ElementManager_Region.Instance.PostInit();
 
             Debug.Log("[-----System-----] : 数据创建完毕");
@@ -174,7 +191,7 @@ namespace Johnny.SimDungeon
             var disablerLargeCell = new HashSet<Vector2Int>();
             foreach (var item in ElementManager_LargeCell.Instance.GetAllElements())
             {
-                if (item.Data.CellType != FlowTilemapCellType.Floor)
+                if (item.cellType != LargelCellType.Floor)
                 {
                     disablerLargeCell.Add(item.coord);
                 }
@@ -184,17 +201,36 @@ namespace Johnny.SimDungeon
             var disablerSmallCell = new HashSet<Vector2Int>();
             foreach (var item in ElementManager_SmallCell.Instance.GetAllElements())
             {
-                if (item.cellType != FlowTilemapSmallCellType.Floor)
+                if (item.cellType != SmallCellType.Floor)
                 {
                     disablerSmallCell.Add(item.coord);
                 }
             }
             disablerController_SmallCell.AddDisablerCells(disablerSmallCell);
 
-            GameStateManager.Instance.ChangeState(GameState.Default);
+            //GameStateManager.Instance.ChangeState(GameState.Default);
             m_IsWorldReady = true;
             OnWorldCreated?.Invoke();
             Debug.Log("[-----System-----] : 世界创建完毕");
+        }
+
+        [Button]
+        public void Save()
+        {
+            EasyGridBuilderProSaveSystem.Save();
+            //if (GridManager.Instance.TryGetGridSaveAndLoadManager(out var gridSaveAndLoadManager))
+            //{
+            //    gridSaveAndLoadManager.Save();
+            //}
+        }
+        [Button]
+        public void Load()
+        {
+            EasyGridBuilderProSaveSystem.Load();
+            //if (GridManager.Instance.TryGetGridSaveAndLoadManager(out var gridSaveAndLoadManager))
+            //{
+            //    gridSaveAndLoadManager.Save();
+            //}
         }
 
         private void OnDestroy()

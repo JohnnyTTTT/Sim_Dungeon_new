@@ -13,8 +13,8 @@ namespace Johnny.SimDungeon
     {
         public string name;
         public RoomType roomType;
-        public HashSet<Element_LargeCell> containedLargeCells = new HashSet<Element_LargeCell>();
-        public HashSet<Element_SmallCell> containedSmallCells = new HashSet<Element_SmallCell>();
+        public HashSet<Vector2Int> containedLargeCells = new HashSet<Vector2Int>();
+        public HashSet<Vector2Int> containedSmallCells = new HashSet<Vector2Int>();
         public bool isClosed;
 
         public BuildableGenAssets biome;
@@ -29,25 +29,25 @@ namespace Johnny.SimDungeon
             roomColor = Random.ColorHSV();
         }
 
-        public void AddSamllCell(Element_SmallCell cell)
+        public void AddSamllCell(Vector2Int coord)
         {
-            containedSmallCells.Add(cell);
-            ElementManager_Region.Instance.RegisterSamallCoord(cell.coord, this);
+            containedSmallCells.Add(coord);
+            ElementManager_Region.Instance.RegisterSamallCoord(coord, this);
         }
 
-        public void RemoveSmallCell(Element_SmallCell cell)
+        public void RemoveSmallCell(Vector2Int cell)
         {
             containedSmallCells.Remove(cell);
-            ElementManager_Region.Instance.UnregisterSamallCoord(cell.coord, this);
+            ElementManager_Region.Instance.UnregisterSamallCoord(cell, this);
         }
 
-        public void AddLargeCell(Element_LargeCell cell)
+        public void AddLargeCell(Vector2Int cell)
         {
             containedLargeCells.Add(cell);
-            ElementManager_Region.Instance.RegisterLargeCoord(cell.coord, this);
+            ElementManager_Region.Instance.RegisterLargeCoord(cell, this);
         }
 
-        public void AddLargeCells(HashSet<Element_LargeCell> cells)
+        public void AddLargeCells(HashSet<Vector2Int> cells)
         {
             foreach (var cell in cells)
             {
@@ -55,13 +55,13 @@ namespace Johnny.SimDungeon
             }
         }
 
-        public void RemoveLargeCell(Element_LargeCell cell)
+        public void RemoveLargeCell(Vector2Int cell)
         {
             containedLargeCells.Remove(cell);
-            ElementManager_Region.Instance.UnregisterLargeCoord(cell.coord, this);
+            ElementManager_Region.Instance.UnregisterLargeCoord(cell, this);
         }
 
-        public void RemoveLargeCells(HashSet<Element_LargeCell> cells)
+        public void RemoveLargeCells(HashSet<Vector2Int> cells)
         {
             foreach (var cell in cells)
             {
@@ -72,12 +72,14 @@ namespace Johnny.SimDungeon
         public void CalculateBounds()
         {
             // 初始化 bounds
-            bounds = new Bounds(containedLargeCells.First().worldPosition, Vector3.zero);
+            var worldPosition = CoordUtility.LargeCoordToWorldPosition(containedLargeCells.First());
+            bounds = new Bounds(worldPosition, Vector3.zero);
 
             // 包含所有格子
             foreach (var cell in containedLargeCells)
             {
-                bounds.Encapsulate(cell.worldPosition);
+                worldPosition = CoordUtility.LargeCoordToWorldPosition(cell);
+                bounds.Encapsulate(worldPosition);
             }
 
             // Y轴可以忽略或保持为0
@@ -102,14 +104,16 @@ namespace Johnny.SimDungeon
         {
             foreach (var item in containedLargeCells)
             {
-                GizmoUnitily.DrawTwoSizeCube(item.worldPosition, roomColor, true);
+                var worldPosition = CoordUtility.LargeCoordToWorldPosition(item);
+                GizmoUnitily.DrawTwoSizeCube(worldPosition, roomColor, true);
 }
             Color.RGBToHSV(roomColor, out float h, out float s, out float v);
             v *= 0.3f; 
             var darker = Color.HSVToRGB(h, s, v);
             foreach (var item in containedSmallCells)
             {
-                GizmoUnitily.DrawOneSizeCube(item.worldPosition, darker, true);
+                var worldPosition = CoordUtility.SmallCoordToWorldPosition(item);
+                GizmoUnitily.DrawOneSizeCube(worldPosition, darker, true);
             }
             GizmoUnitily.DrawLabel(center, name);
         }

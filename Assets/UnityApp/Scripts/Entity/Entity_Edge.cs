@@ -18,13 +18,17 @@ namespace Johnny.SimDungeon
         {
             base.UpdateData();
 
-            var front = transform.position + GetOffset() + transform.forward;
-            var back = transform.position + GetOffset() - transform.forward;
+            var worldPosition = buildableObject.GetObjectOriginWorldPosition();
 
+            var front = worldPosition + GetOffset() + transform.forward;
+            var back = worldPosition + GetOffset() - transform.forward;
+
+            //Debug.Log(transform.position);
+            //Debug.Log(worldPosition);
             var frontCell = ElementManager_LargeCell.Instance.GetElement(front);
             var backCell = ElementManager_LargeCell.Instance.GetElement(back);
 
-    
+
 
             if (Direction == Direction.Up || Direction == Direction.Down)
             {
@@ -34,6 +38,7 @@ namespace Johnny.SimDungeon
             else
             {
                 var parentElement = front.x > back.x ? frontCell : backCell;
+
                 edgeElement = ElementManager_Edge.Instance.GetLeftEdgeFromTileCoord(parentElement.coord);
             }
 

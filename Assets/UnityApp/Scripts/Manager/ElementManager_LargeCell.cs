@@ -11,11 +11,15 @@ using UnityEditor;
 #endif
 namespace Johnny.SimDungeon
 {
-    public class Element_LargeCell : ElementData<FlowTilemapCell>
+    public enum LargelCellType
     {
-        //public Element_LargeCell[] neighbors = new Element_LargeCell[4];
-        //public Element_SmallCell[] containedSmallCells = new Element_SmallCell[9];
-        //public Element_Edge[] edges = new Element_Edge[4];
+        Empty,
+        Floor,
+    }
+
+    public class Element_LargeCell : Element
+    {
+        public LargelCellType cellType;
 
         private Entity_Floor m_Ground;
         public Entity_Ceiling ceiling;
@@ -30,9 +34,9 @@ namespace Johnny.SimDungeon
         public Vector2Int coord;
 
 
-        public Element_LargeCell(FlowTilemapCell data) : base(data)
+        public Element_LargeCell(Vector2Int position)
         {
-            coord = new Vector2Int(data.TileCoord.x, data.TileCoord.y);
+            coord = position;
             worldPosition = CoordUtility.LargeCoordToWorldPosition(coord);
         }
 
@@ -59,12 +63,12 @@ namespace Johnny.SimDungeon
         public void DrawGizmos()
         {
             GizmoUnitily.DrawTwoSizeCube(worldPosition, Color.green, true);
-            GizmoUnitily.DrawLabel(coord, $"{new Vector2Int(Data.TileCoord.x, Data.TileCoord.y)} ");
+            GizmoUnitily.DrawLabel(coord, $"{coord} ");
         }
 
         public override string ToString()
         {
-            return $"<{Data.TileCoord.x},{Data.TileCoord.y}> - {Data.CellType}";
+            return $"LargeCell_<{coord}>_<{cellType}>";
         }
 
     }
@@ -86,19 +90,18 @@ namespace Johnny.SimDungeon
         private static ElementManager_LargeCell s_Instance;
 
         public Vector2Int drawGizmosCoord;
-
         public void Initialize(FlowTilemapCellDatabase cells)
         {
-            map.Clear();
-
             foreach (var cell in cells)
             {
-                var element = new Element_LargeCell(cell);
-                map[cell.TileCoord.ToVector2Int()] = element;
+                var coord = new Vector2Int(cell.TileCoord.x, cell.TileCoord.y);
+                var element = new Element_LargeCell(coord);
+                element.cellType = cell.CellType == FlowTilemapCellType.Floor ? LargelCellType.Floor : LargelCellType.Empty;
+                map[coord] = element;
             }
-
             Debug.Log($"[-----System-----] : DataManager Cell inited , Cell count <{map.Count}>");
         }
+
 
         public void Dispose()
         {
@@ -143,14 +146,12 @@ namespace Johnny.SimDungeon
             {
                 foreach (var item in map)
                 {
-                    if ( item.Value.Data.CellType == FlowTilemapCellType.Floor)
+                    if (item.Value.cellType == LargelCellType.Floor)
                     {
                         item.Value.DrawGizmos();
                     }
                 }
             }
         }
-
-
     }
 }

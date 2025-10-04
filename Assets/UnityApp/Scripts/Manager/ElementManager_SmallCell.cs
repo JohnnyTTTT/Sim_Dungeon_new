@@ -2,24 +2,36 @@ using DungeonArchitect;
 using Sirenix.OdinInspector;
 using SoulGames.EasyGridBuilderPro;
 using System;
+using System.Linq;
 using UnityEngine;
 using static UnityEditor.Rendering.FilterWindow;
 
 namespace Johnny.SimDungeon
 {
-    public enum FlowTilemapSmallCellType
+    public enum SmallCellType
     {
         Empty,
         Floor,
         Wall,
-        Door,
     }
+
     public class Element_SmallCell : Element
     {
         //public Element_SmallCell[] neighbors = new Element_SmallCell[4];
         public Vector2Int coord;
         public Vector3 worldPosition;
-        public FlowTilemapSmallCellType cellType;
+        public SmallCellType cellType
+        {
+            get
+            {
+                return cellType1;
+            }
+            set
+            {
+                cellType1 = value;
+            }
+        }
+        public SmallCellType cellType1;
 
         //public Element_Edge wall;
         //public Element_LargeCell parentCell;
@@ -41,12 +53,12 @@ namespace Johnny.SimDungeon
         {
             var color = (cellType) switch
             {
-                FlowTilemapSmallCellType.Empty => Color.black,
-                FlowTilemapSmallCellType.Floor => Color.blue,
-                FlowTilemapSmallCellType.Wall => Color.red,
-                FlowTilemapSmallCellType.Door => Color.green,
+                SmallCellType.Empty => Color.black,
+                SmallCellType.Floor => Color.blue,
+                SmallCellType.Wall => Color.red,
+                //SmallCellType.Door => Color.green,
             };
-            GizmoUnitily.DrawOneSizeCube(worldPosition , color, true);
+            GizmoUnitily.DrawOneSizeCube(worldPosition, color, true);
         }
     }
 
@@ -78,6 +90,17 @@ namespace Johnny.SimDungeon
             }
             Debug.Log($"[-----System-----] : DataManager_Tile inited , tile count <{map.Count}>");
         }
+
+        public void PostInit()
+        {
+            foreach (var item in map.Values)
+            {
+                var owners = GetOwnerEdges(item.coord);
+
+                item.cellType = owners != null && owners.Any(x => x != null && x.edgeType != EdgeType.Empty) ? SmallCellType.Wall : SmallCellType.Empty;
+            }
+        }
+
         public void Dispose()
         {
             map?.Clear();
@@ -117,6 +140,43 @@ namespace Johnny.SimDungeon
         public Element_SmallCell GetDownCellFromCoord(Vector2Int coord)
         {
             return GetElement(coord + DirectionUtility.DOWN);
+        }
+
+        public Element_Edge[] GetOwnerEdges(Vector2Int coord)
+        {
+            if (IsEvenNumber(coord.x) && IsEvenNumber(coord.y))
+            {
+                var checkPosition = CoordUtility.SmallCoordToWorldPosition(coord + DirectionUtility.RIGHTUP);
+                var largeCoord = CoordUtility.WorldPositionToLargeCoord(checkPosition);
+                var owners = new Element_Edge[4];
+                owners[0] = ElementManager_Edge.Instance.GetHorizontal(largeCoord + DirectionUtility.LEFT);
+                owners[1] = ElementManager_Edge.Instance.GetVertical(largeCoord);
+                owners[2] = ElementManager_Edge.Instance.GetHorizontal(largeCoord);
+                owners[3] = ElementManager_Edge.Instance.GetVertical(largeCoord + DirectionUtility.DOWN);
+                return owners;
+            }
+            else if (!IsEvenNumber(coord.x) && IsEvenNumber(coord.y))
+            {
+                var checkPosition = CoordUtility.SmallCoordToWorldPosition(coord + DirectionUtility.UP);
+                var largeCoord = CoordUtility.WorldPositionToLargeCoord(checkPosition);
+                var owners = new Element_Edge[1];
+                owners[0] = ElementManager_Edge.Instance.GetHorizontal(largeCoord);
+                return owners;
+            }
+            else if (IsEvenNumber(coord.x) && !IsEvenNumber(coord.y))
+            {
+                var checkPosition = CoordUtility.SmallCoordToWorldPosition(coord + DirectionUtility.RIGHT);
+                var largeCoord = CoordUtility.WorldPositionToLargeCoord(checkPosition);
+                var owners = new Element_Edge[1];
+                owners[0] = ElementManager_Edge.Instance.GetVertical(largeCoord);
+                return owners;
+            }
+            return null;
+        }
+
+        private bool IsEvenNumber(int value)
+        {
+            return value % 2 == 0;
         }
 
         private void OnDrawGizmos()

@@ -98,7 +98,7 @@ namespace Johnny.SimDungeon
             {
                 reslut = InstantiateEditor(template, position, rotation, scale, parent);
             }
-            reslut.transform.parent = parent;
+            //reslut.transform.parent = parent;
             return reslut;
         }
         public GameObject InstantiatePrefab(GameObject template, Vector3 position, Quaternion rotation, Vector3 scale, Transform parent)

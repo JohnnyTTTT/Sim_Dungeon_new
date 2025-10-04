@@ -7,9 +7,20 @@ using UnityEngine;
 
 namespace Johnny.SimDungeon
 {
-    public class Element_Edge : ElementData<FlowTilemapEdge>
+    public enum EdgeType
+    {
+        Empty,
+        Wall,
+        Fence,
+        Door
+    }
+
+    public class Element_Edge : Element
     {
         public event Action<Element_Edge> OnWallEntityAdded;
+
+        public EdgeType edgeType;
+        public bool horizontalEdge;
 
         //public Element_LargeCell[] adjacentLargeCells = new Element_LargeCell[2];
 
@@ -26,10 +37,11 @@ namespace Johnny.SimDungeon
 
         public bool isRim;
 
-        public Element_Edge(FlowTilemapEdge data) : base(data)
+        public Element_Edge(Vector2Int position,bool horizontal)
         {
-            coord = new Vector2Int(data.EdgeCoord.x, data.EdgeCoord.y);
-            if (data.HorizontalEdge)
+            coord = position;
+            horizontalEdge = horizontal;
+            if (horizontalEdge)
             {
                 worldPosition = CoordUtility.LargeCoordToWorldPosition(coord) + new Vector3(0f, 0f, -1f);
             }
@@ -37,7 +49,6 @@ namespace Johnny.SimDungeon
             {
                 worldPosition = CoordUtility.LargeCoordToWorldPosition(coord) + Vector3.left;
             }
-
         }
 
         public void SetDoorEntity(Entity_Door doorEntity)
@@ -71,25 +82,28 @@ namespace Johnny.SimDungeon
 
         public void DrawGizmos()
         {
-            if (Data.EdgeType == FlowTilemapEdgeType.Fence || Data.EdgeType == FlowTilemapEdgeType.Wall)
+            if (edgeType ==  EdgeType.Fence || edgeType ==  EdgeType.Wall)
             {
-                GizmoUnitily.DrawWall(worldPosition, Color.red, Data.HorizontalEdge);
+                GizmoUnitily.DrawWall(worldPosition, Color.red, horizontalEdge);
             }
+            else if (edgeType == EdgeType.Door)
+            {
+                GizmoUnitily.DrawWall(worldPosition, Color.green, horizontalEdge);
+            }           
             else
             {
-                GizmoUnitily.DrawWall(worldPosition, Color.blue, Data.HorizontalEdge);
+                GizmoUnitily.DrawWall(worldPosition, Color.blue, horizontalEdge);
             }
             //GizmoUnitily.DrawLabel(worldPosition,coord.ToString());
             if (m_WallEntity != null)
             {
                 GizmoUnitily.DrawLine(worldPosition, worldPosition + new Vector3(0f, 2f, 0f), Color.yellow);
             }
-
         }
 
         public override string ToString()
         {
-            return $"<{Data.EdgeCoord.x},{Data.EdgeCoord.y}> , HorizontalEdge : {Data.HorizontalEdge} , Entity : {m_WallEntity}";
+            return $"Edge_<{coord}>,HorizontalEdge : {horizontalEdge} , Entity : {m_WallEntity}";
         }
 
     }
@@ -116,7 +130,6 @@ namespace Johnny.SimDungeon
             horizontalMap.Clear();
             verticalMap.Clear();
         }
-
         public void Initialize(FlowTilemapEdgeDatabase edges)
         {
             horizontalMap.Clear();
@@ -124,55 +137,81 @@ namespace Johnny.SimDungeon
 
             foreach (var edge in edges)
             {
-                var data = new Element_Edge(edge);
+                var coord = new Vector2Int(edge.EdgeCoord.x, edge.EdgeCoord.y);
+                var element = new Element_Edge(coord, edge.HorizontalEdge);
+                if (edge.EdgeType == FlowTilemapEdgeType.Wall)
+                {
+                    element.edgeType = EdgeType.Wall;
+                }
+                else if (edge.EdgeType == FlowTilemapEdgeType.Fence)
+                {
+                    element.edgeType = EdgeType.Fence;
+                }
+                else if (edge.EdgeType == FlowTilemapEdgeType.Door)
+                {
+                    element.edgeType = EdgeType.Door;
+                }
+
                 if (edge.HorizontalEdge)
                 {
-                    horizontalMap[edge.EdgeCoord.ToVector2Int()] = data;
+                    horizontalMap[coord] = element;
                 }
                 else
                 {
-                    verticalMap[edge.EdgeCoord.ToVector2Int()] = data;
+                    verticalMap[coord] = element;
                 }
             }
             Debug.Log($"[-----System-----] : DataManager_Edge inited , HorizontalMap count <{horizontalMap.Count}> - VerticalMap <{verticalMap.Count}>");
         }
 
-        public void PostInit()
-        {
-            foreach (var kvp in horizontalMap)
-            {
-                var edge = kvp.Value;
-                var isWall = edge.Data.EdgeType != FlowTilemapEdgeType.Empty;
-                if (isWall)
-                {
-                    var containedSmallCells = GetContainedSmallCells(edge);
-                    foreach (var item in containedSmallCells)
-                    {
-                        if (item != null)
-                        {
-                            item.cellType = FlowTilemapSmallCellType.Wall;
-                        }
-                    }
-                }
-            }
+        //public void PostInit()
+        //{
+        //    foreach (var kvp in horizontalMap)
+        //    {
+        //        var edge = kvp.Value;
+        //        var type = edge.edgeType switch
+        //        {
+        //            EdgeType.Empty => SmallCellType.Empty,
+        //            EdgeType.Wall => SmallCellType.Wall,
+        //            EdgeType.Fence => SmallCellType.Wall,
+        //            EdgeType.Door => SmallCellType.Door,
+        //        };
+        //        if (type != SmallCellType.Empty)
+        //        {
+        //            var containedSmallCells = GetContainedSmallCells(edge);
+        //            foreach (var item in containedSmallCells)
+        //            {
+        //                if (item != null)
+        //                {
+        //                    item.cellType = type;
+        //                }
+        //            }
+        //        }
+        //    }
 
-            foreach (var kvp in verticalMap)
-            {
-                var edge = kvp.Value;
-                var isWall = edge.Data.EdgeType != FlowTilemapEdgeType.Empty;
-                if (isWall)
-                {
-                    var containedSmallCells = GetContainedSmallCells(edge);
-                    foreach (var item in containedSmallCells)
-                    {
-                        if (item != null)
-                        {
-                            item.cellType = FlowTilemapSmallCellType.Wall;
-                        }
-                    }
-                }
-            }
-        }
+        //    foreach (var kvp in verticalMap)
+        //    {
+        //        var edge = kvp.Value;
+        //        var type = edge.edgeType switch
+        //        {
+        //            EdgeType.Empty => SmallCellType.Empty,
+        //            EdgeType.Wall => SmallCellType.Wall,
+        //            EdgeType.Fence => SmallCellType.Wall,
+        //            EdgeType.Door => SmallCellType.Door,
+        //        };
+        //        if (type != SmallCellType.Empty)
+        //        {
+        //            var containedSmallCells = GetContainedSmallCells(edge);
+        //            foreach (var item in containedSmallCells)
+        //            {
+        //                if (item != null)
+        //                {
+        //                    item.cellType = type;
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
 
         public void Dispose()
         {
@@ -219,7 +258,7 @@ namespace Johnny.SimDungeon
         {
             var reslut = new Element_LargeCell[2];
             var edgeCoord = edge.coord;
-            if (edge.Data.HorizontalEdge)
+            if (edge.horizontalEdge)
             {
                 var frontCell = ElementManager_LargeCell.Instance.GetElement(edgeCoord);
                 reslut[0] = frontCell;
@@ -241,7 +280,7 @@ namespace Johnny.SimDungeon
         {
             var reslut = new Element_Edge[6];
             var edgeCoord = edge.coord;
-            if (edge.Data.HorizontalEdge)
+            if (edge.horizontalEdge)
             {
                 var upLeftHorizontal = GetHorizontal(edgeCoord);
                 reslut[0] = upLeftHorizontal;
@@ -288,7 +327,7 @@ namespace Johnny.SimDungeon
         {
             var reslut = new Element_SmallCell[3];
             var coord = CoordUtility.WorldPositionToSmallCoord(edge.worldPosition);
-            if (edge.Data.HorizontalEdge)
+            if (edge.horizontalEdge)
             {
                 var cellMid = ElementManager_SmallCell.Instance.GetElement(coord);
                 reslut[1] = cellMid;
@@ -313,7 +352,6 @@ namespace Johnny.SimDungeon
 
             return reslut;
         }
-
 
         public Element_Edge GetLeftEdgeFromTileCoord(Vector2Int coord)
         {
@@ -365,6 +403,8 @@ namespace Johnny.SimDungeon
                 }
             }
         }
+
+
 
     }
 }

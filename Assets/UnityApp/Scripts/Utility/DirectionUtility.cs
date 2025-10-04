@@ -35,8 +35,8 @@ namespace Johnny.SimDungeon
         public static Vector3 dirLeft = Vector3.left;
         public static Vector3 dirUp = Vector3.forward;
         public static Vector3 dirRight = Vector3.right;
-        public static Vector3 dirDown = Vector3.back;     
-       
+        public static Vector3 dirDown = Vector3.back;
+
         public static Direction ToDirection(FourDirectionalRotation pluginDir)
         {
             return pluginDir switch
@@ -143,19 +143,19 @@ namespace Johnny.SimDungeon
             }
         }
 
-        public static bool HasEdgeBetween(Element_LargeCell a, Element_LargeCell b, Vector2Int dir)
+        public static bool HasEdgeBetween(Vector2Int a, Vector2Int b, Vector2Int dir)
         {
-            if (dir == LEFT) 
-                return ElementManager_Edge.Instance.GetLeftEdgeFromTileCoord(a.coord).Data.EdgeType > FlowTilemapEdgeType.Empty;
-         
-            if (dir == UP) 
-                return ElementManager_Edge.Instance.GetUpEdgeFromTileCoord(a.coord).Data.EdgeType > FlowTilemapEdgeType.Empty;
-          
-            if (dir == RIGHT) 
-                return ElementManager_Edge.Instance.GetRightEdgeFromTileCoord(a.coord).Data.EdgeType > FlowTilemapEdgeType.Empty;
-           
-            if (dir == DOWN) 
-                return ElementManager_Edge.Instance.GetDownEdgeFromTileCoord(a.coord).Data.EdgeType > FlowTilemapEdgeType.Empty;
+            if (dir == LEFT)
+                return ElementManager_Edge.Instance.GetLeftEdgeFromTileCoord(a).edgeType > EdgeType.Empty;
+
+            if (dir == UP)
+                return ElementManager_Edge.Instance.GetUpEdgeFromTileCoord(a).edgeType > EdgeType.Empty;
+
+            if (dir == RIGHT)
+                return ElementManager_Edge.Instance.GetRightEdgeFromTileCoord(a).edgeType > EdgeType.Empty;
+
+            if (dir == DOWN)
+                return ElementManager_Edge.Instance.GetDownEdgeFromTileCoord(a).edgeType > EdgeType.Empty;
             return false;
         }
 
@@ -165,7 +165,7 @@ namespace Johnny.SimDungeon
             var neighbors = ElementManager_Edge.Instance.GetNeighborEdges(edge);
             foreach (var neighbor in neighbors)
             {
-                if (neighbor.Data.EdgeType != FlowTilemapEdgeType.Empty)
+                if (neighbor.edgeType !=  EdgeType.Empty)
                 {
                     count++;
                 }
@@ -190,7 +190,7 @@ namespace Johnny.SimDungeon
             //Right
             connects[2] = ElementManager_Edge.Instance.GetHorizontal(start);
             //Down
-            connects[3] = ElementManager_Edge.Instance.GetVertical(start+Vector3.back);
+            connects[3] = ElementManager_Edge.Instance.GetVertical(start + Vector3.back);
             return connects;
         }
 

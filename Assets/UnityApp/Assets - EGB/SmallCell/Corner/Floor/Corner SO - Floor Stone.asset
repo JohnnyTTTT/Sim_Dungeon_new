@@ -28,14 +28,14 @@ MonoBehaviour:
   - objectPrefab: {fileID: 4549288026964822154, guid: 20351219639206a479d2b5f8a22d66d5, type: 3}
     ghostObjectPrefab: {fileID: 4549288026964822154, guid: 20351219639206a479d2b5f8a22d66d5, type: 3}
     probability: 25
-  eachPlacementUseRandomPrefab: 0
+  eachPlacementUseRandomPrefab: 1
   validPlacementMaterial: {fileID: 2100000, guid: e8a2c7224a8b9844e9a2c84e5f5ace41, type: 2}
   invalidPlacementMaterial: {fileID: 2100000, guid: fe48486a20e56a94f84ee96b1792ee98, type: 2}
   setSpawnedObjectLayer: 0
   spawnedObjectLayer:
     serializedVersion: 2
     m_Bits: 0
-  setGridSystemAsParent: 0
+  setGridSystemAsParent: 1
   useObjectGridCustomAlphaMaskScale: 0
   objectGridCustomAlphaMaskScale: {x: 0.1, y: 0.1}
   customSurfaceLayerMask:

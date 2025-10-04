@@ -112,19 +112,19 @@ namespace Johnny.SimDungeon
 
         private void FloodFillActionPerformed(InputAction.CallbackContext obj)
         {
-            if (!m_IsGridBoxPlacemen && m_CurrentZoneType != ZoneType.Undefined && m_LastDetectionCoord != null)
-            {
-                var region =    ElementManager_Region.Instance.GetRegionFromLargeCoord(m_LastDetectionCoord);
-                var prefab = m_CandidateBuildableGridObjectSO.randomPrefabs[0].ghostObjectPrefab;
-                foreach (var regionCell in region.containedLargeCells)
-                {
-                    if (regionCell.coord != m_LastDetectionCoord)
-                    {
-                        var ghost = Instantiate(prefab, regionCell.worldPosition, Quaternion.identity, this.transform).gameObject;
-                        m_CandidateRegionCells.Add(ghost);
-                    }
-                }
-            }
+            //if (!m_IsGridBoxPlacemen && m_CurrentZoneType != ZoneType.Undefined && m_LastDetectionCoord != null)
+            //{
+            //    var region =    ElementManager_Region.Instance.GetRegionFromLargeCoord(m_LastDetectionCoord);
+            //    var prefab = m_CandidateBuildableGridObjectSO.randomPrefabs[0].ghostObjectPrefab;
+            //    foreach (var regionCell in region.containedLargeCells)
+            //    {
+            //        if (regionCell.coord != m_LastDetectionCoord)
+            //        {
+            //            var ghost = Instantiate(prefab, regionCell.worldPosition, Quaternion.identity, this.transform).gameObject;
+            //            m_CandidateRegionCells.Add(ghost);
+            //        }
+            //    }
+            //}
         }
 
         private void FloodFillActionCanceled(InputAction.CallbackContext obj)

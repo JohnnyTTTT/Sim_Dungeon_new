@@ -35,7 +35,7 @@ namespace Johnny.SimDungeon
                     var coord = new Vector2Int(x, y);
                     var cell = ElementManager_LargeCell.Instance.GetElement(coord);
 
-                    if (cell.Data.CellType == FlowTilemapCellType.Floor) continue;
+                    if (cell.cellType ==  LargelCellType.Floor) continue;
 
                     float px = x * cellSize;
                     float py = y * cellSize;

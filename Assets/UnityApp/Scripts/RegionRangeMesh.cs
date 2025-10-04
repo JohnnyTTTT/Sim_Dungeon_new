@@ -80,7 +80,7 @@ namespace Johnny.SimDungeon
                 m_MeshFilter.sharedMesh = new Mesh();
             }
 
-            var regionCells = region.containedSmallCells.Select(x => x.coord).ToHashSet();
+            var regionCells = region.containedSmallCells;
 
 
             var vertices = new List<Vector3>();

@@ -38,7 +38,6 @@ namespace Johnny.SimDungeon
         private static SpawnManager s_Instance;
 
         [Title("Global Settings")]
-        public Transform m_SpawnRoot;
         public Shader WallShader;
         public List<Entity> spwanedEntityForEditor = new List<Entity>();
 
@@ -139,6 +138,7 @@ namespace Johnny.SimDungeon
             }
         }
 
+       
         public void Init()
         {
             if (Application.isPlaying)
@@ -283,7 +283,55 @@ namespace Johnny.SimDungeon
             }
         }
 
+        private void OnBuildableObjectPlaced(EasyGridBuilderPro easyGridBuilderPro, BuildableObject buildableObject)
+        {
+            if (!WorldManager.Instance.m_IsWorldReady) return;
+            if (buildableObject.TryGetComponent<Entity>(out var entity))
+            {
 
+                entity.UpdateData();
+
+                if (buildableObject is BuildableFreeObject buildableFreeObject)
+                {
+
+                }
+                else if (buildableObject is BuildableEdgeObject buildableEdgeObject)
+                {
+                    if (entity is Entity_Wall wall)
+                    {
+                        var edge = wall.edgeElement;
+                        edge.edgeType = EdgeType.Wall;
+                        m_CreatedBuildableEdgeObject.Add(wall);
+                    }
+                }
+            }
+            //buildableObject.transform.position += new Vector3(0f, -0.1f, 0f);
+            //if (DungeonController.Instance.worldDataInited)
+            //{
+            //    //if (buildableObject is BuildableGridObject buildableGridObject)
+            //    //{
+            //    //    if (buildableObject.TryGetComponent<DevelopToolPanel>(out var areaExpandProxy))
+            //    //    {
+            //    //        m_CandidateAreaExpandProxies.Add(buildableGridObject);
+            //    //    }
+            //    //}
+
+
+
+
+
+
+            //    //if (buildableObject is BuildableCornerObject buildableCornerObject)
+            //    //{
+            //    //    var edgeSO = BindingService.MainGameViewModel.ActiveEasyGridBuilderPro.GetActiveBuildableObjectSO() as BuildableEdgeObjectSO;
+            //    //    if (edgeSO != null && !DirectionUtility.HasCornerConnectRightAngleEdges(buildableCornerObject.transform.position))
+            //    //    {
+            //    //        TryDestroyBuildableCornerObject(buildableCornerObject);
+            //    //    }
+            //    //}
+            //}
+            //Debug.Log("Rooms : " + ElementManager_Room.Instance.roomList.Count);
+        }
 
 
         private void OnDestroy()
@@ -340,18 +388,18 @@ namespace Johnny.SimDungeon
             yield return new WaitForEndOfFrame();
             yield return new WaitForEndOfFrame();
 
-            var cells = new HashSet<Element_LargeCell>();
+            var cells = new HashSet<Vector2Int>();
             foreach (var entity in m_CreatedBuildableEdgeObject)
             {
                 var containedSmallCells = ElementManager_Edge.Instance.GetContainedSmallCells(entity.edgeElement);
                 foreach (var small in containedSmallCells)
                 {
-                    small.cellType = FlowTilemapSmallCellType.Wall;
+                    small.cellType = SmallCellType.Wall;
                 }
                 var adjacentLargeCells = ElementManager_Edge.Instance.GetAdjacentLargeCells(entity.edgeElement);
                 foreach (var cell in adjacentLargeCells)
                 {
-                    cells.Add(cell);
+                    cells.Add(cell.coord);
                 }
                 //ElementManager_Region.Instance.HandleWallPlacedIncremental(item);
             }
@@ -376,7 +424,7 @@ namespace Johnny.SimDungeon
 
             foreach (var cell in cellList)
             {
-                cell.Data.CellType = FlowTilemapCellType.Floor;
+                cell.cellType = LargelCellType.Floor;
                 CreateGroundForCellElement(cell);
             }
 
@@ -388,37 +436,37 @@ namespace Johnny.SimDungeon
                 var leftCell = neighbors[0];
                 var leftEdge = ElementManager_Edge.Instance.GetLeftEdgeFromTileCoord(cell.coord);
                 var leftRegion = ElementManager_Region.Instance.GetRegionFromLargeCoord(leftCell.coord);
-                if (!cellList.Contains(leftCell) && leftEdge.GetWallEntity() == null && (leftCell.Data.CellType == FlowTilemapCellType.Custom || leftRegion == null))
+                if (!cellList.Contains(leftCell) && leftEdge.GetWallEntity() == null && (leftCell.cellType == LargelCellType.Empty || leftRegion == null))
                 {
-                    leftEdge.Data.EdgeType = FlowTilemapEdgeType.Fence;
+                    leftEdge.edgeType =  EdgeType.Fence;
                     candidateEdges.Add(leftEdge);
                 }
 
                 var upCell = neighbors[1];
                 var upEdge = ElementManager_Edge.Instance.GetUpEdgeFromTileCoord(cell.coord);
                 var upRegion = ElementManager_Region.Instance.GetRegionFromLargeCoord(upEdge.coord);
-                if (!cellList.Contains(upCell) && upEdge.GetWallEntity() == null && (upCell.Data.CellType == FlowTilemapCellType.Custom || upRegion == null))
+                if (!cellList.Contains(upCell) && upEdge.GetWallEntity() == null && (upCell.cellType ==  LargelCellType.Empty || upRegion == null))
                 {
 
-                    upEdge.Data.EdgeType = FlowTilemapEdgeType.Fence;
+                    upEdge.edgeType =  EdgeType.Fence;
                     candidateEdges.Add(upEdge);
                 }
 
                 var rightCell = neighbors[2];
                 var rightEdge = ElementManager_Edge.Instance.GetRightEdgeFromTileCoord(cell.coord);
                 var rightRegion = ElementManager_Region.Instance.GetRegionFromLargeCoord(rightEdge.coord);
-                if (!cellList.Contains(rightCell) && rightEdge.GetWallEntity() == null && (rightCell.Data.CellType == FlowTilemapCellType.Custom || rightRegion == null))
+                if (!cellList.Contains(rightCell) && rightEdge.GetWallEntity() == null && (rightCell.cellType == LargelCellType.Empty || rightRegion == null))
                 {
-                    rightEdge.Data.EdgeType = FlowTilemapEdgeType.Fence;
+                    rightEdge.edgeType =  EdgeType.Fence;
                     candidateEdges.Add(rightEdge);
                 }
 
                 var downCell = neighbors[3];
                 var downEdge = ElementManager_Edge.Instance.GetDownEdgeFromTileCoord(cell.coord);
                 var downRegion = ElementManager_Region.Instance.GetRegionFromLargeCoord(downEdge.coord);
-                if (!cellList.Contains(downCell) && downEdge.GetWallEntity() == null && (downCell.Data.CellType == FlowTilemapCellType.Custom || downRegion == null))
+                if (!cellList.Contains(downCell) && downEdge.GetWallEntity() == null && (downCell.cellType == LargelCellType.Empty || downRegion == null))
                 {
-                    downEdge.Data.EdgeType = FlowTilemapEdgeType.Fence;
+                    downEdge.edgeType =  EdgeType.Fence;
                     candidateEdges.Add(downEdge);
                 }
             }
@@ -486,7 +534,7 @@ namespace Johnny.SimDungeon
         {
             var postion = edge.worldPosition;
             Quaternion rotation;
-            if (edge.Data.HorizontalEdge)
+            if (edge.horizontalEdge)
             {
                 postion += new Vector3(0f, 0f, -1f);
                 rotation = Quaternion.Euler(new Vector3(0f, 0f, 0f));
@@ -504,53 +552,7 @@ namespace Johnny.SimDungeon
             //}
         }
 
-        private void OnBuildableObjectPlaced(EasyGridBuilderPro easyGridBuilderPro, BuildableObject buildableObject)
-        {
-            if (!WorldManager.Instance.m_IsWorldReady) return;
-            if (buildableObject.TryGetComponent<Entity>(out var entity))
-            {
-                entity.UpdateData();
-                if (buildableObject is BuildableFreeObject buildableFreeObject)
-                {
 
-                }
-                else if (buildableObject is BuildableEdgeObject buildableEdgeObject)
-                {
-                    if (entity is Entity_Wall wall)
-                    {
-                        var edge = wall.edgeElement;
-                        edge.Data.EdgeType = FlowTilemapEdgeType.Wall;
-                        m_CreatedBuildableEdgeObject.Add(wall);
-                    }
-                }
-            }
-            //buildableObject.transform.position += new Vector3(0f, -0.1f, 0f);
-            //if (DungeonController.Instance.worldDataInited)
-            //{
-            //    //if (buildableObject is BuildableGridObject buildableGridObject)
-            //    //{
-            //    //    if (buildableObject.TryGetComponent<DevelopToolPanel>(out var areaExpandProxy))
-            //    //    {
-            //    //        m_CandidateAreaExpandProxies.Add(buildableGridObject);
-            //    //    }
-            //    //}
-
-
-
-
-
-
-            //    //if (buildableObject is BuildableCornerObject buildableCornerObject)
-            //    //{
-            //    //    var edgeSO = BindingService.MainGameViewModel.ActiveEasyGridBuilderPro.GetActiveBuildableObjectSO() as BuildableEdgeObjectSO;
-            //    //    if (edgeSO != null && !DirectionUtility.HasCornerConnectRightAngleEdges(buildableCornerObject.transform.position))
-            //    //    {
-            //    //        TryDestroyBuildableCornerObject(buildableCornerObject);
-            //    //    }
-            //    //}
-            //}
-            //Debug.Log("Rooms : " + ElementManager_Room.Instance.roomList.Count);
-        }
         #endregion
 
         #region Placement
@@ -566,12 +568,6 @@ namespace Johnny.SimDungeon
 
             if (easyGridBuilderPro.TryInitializeBuildableEdgeObjectSinglePlacement(worldPosition, buildableEdgeObjectSO, fourDirectional, false, true, true, 0, true, out buildableGridObject, radomPrefabs, null))
             {
-                buildableGridObject.transform.parent = m_SpawnRoot;
-                var children = buildableGridObject.GetComponentsInChildren<BuildableEdgeObject>();
-                foreach (var item in children)
-                {
-                    item.SetOccupiedGridSystem(easyGridBuilderPro);
-                }
                 return true;
             }
             else
@@ -591,11 +587,6 @@ namespace Johnny.SimDungeon
             }
             if (easyGridBuilderPro.TryInitializeBuildableGridObjectSinglePlacement(worldPosition, buildableGridObjectSO, dir, true, true, 0, true, out buildableGridObject, radomPrefabs, null))
             {
-                buildableGridObject.transform.parent = m_SpawnRoot;
-                if (buildableGridObject.GetIsActiveSceneObject(out _))
-                {
-                    Debug.Log(buildableGridObject.name);
-                }
                 return true;
             }
             else
@@ -612,7 +603,6 @@ namespace Johnny.SimDungeon
             if (easyGridBuilderPro.TryInitializeBuildableCornerObjectSinglePlacement(worldPosition, buildableCornerObjectSO,
                  fourDirectional, EightDirectionalRotation.North, 0f, true, true, 0, true, out buildableCornerObject, buildableObjectSORandomPrefab, null))
             {
-                buildableCornerObject.transform.parent = m_SpawnRoot;
                 return true;
             }
             else
@@ -629,7 +619,6 @@ namespace Johnny.SimDungeon
             if (easyGridBuilderPro.TryInitializeBuildableFreeObjectSinglePlacement(worldPosition, buildableFreeObjectSO,
                  fourDirectional, EightDirectionalRotation.North, 0f, Vector3.zero, true, 0, true, out buildableObject, buildableObjectSORandomPrefab, null))
             {
-                buildableObject.transform.parent = m_SpawnRoot;
                 return true;
             }
             else

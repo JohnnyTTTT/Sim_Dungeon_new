@@ -60,7 +60,7 @@ namespace Johnny.SimDungeon
         }
 
 
-        public Region CreateRegion(RoomType roomType, HashSet<Element_LargeCell> cells)
+        public Region CreateRegion(RoomType roomType, HashSet<Vector2Int> cells)
         {
             var region = new Region();
             region.Init($"{roomType} - {s_RegionID}", roomType);
@@ -109,10 +109,10 @@ namespace Johnny.SimDungeon
         {
             foreach (var cell in ElementManager_LargeCell.Instance.GetAllElements())
             {
-                if (cell.Data.CellType != FlowTilemapCellType.Floor) continue;
+                if (cell.cellType !=  LargelCellType.Floor) continue;
                 if (mapForLargeCoord.ContainsKey(cell.coord)) continue;
 
-                var regionCells = FloodFill(cell);
+                var regionCells = FloodFillLargeCoord(cell.coord);
                 if (regionCells != null && regionCells.Count > 0)
                 {
                     var newRegion = CreateRegion(RoomType.EmptyRoom, regionCells);
@@ -156,25 +156,25 @@ namespace Johnny.SimDungeon
 
         private void CollectSmallCells(Region region)
         {
-            var position = region.containedLargeCells.First().worldPosition;
-                              
-            var firstSmall = ElementManager_SmallCell.Instance.GetElement(position);
-            //region.AddSamllCell(firstSmall);
-            var regionCells = FloodFill(firstSmall);
-            if (regionCells != null && regionCells.Count > 0)
-            {
+            //var position = region.containedLargeCells.First().worldPosition;
 
-                foreach (var cell in regionCells)
-                {
-                    var oldRegion = GetRegionFromSmallCoord(cell.coord);
-                    if (oldRegion != null)
-                    {
-                        oldRegion.RemoveSmallCell(cell);
-                    }
-                    region.AddSamllCell(cell);
-                    cell.cellType = FlowTilemapSmallCellType.Floor;
-                }
-            }
+            //var firstSmall = ElementManager_SmallCell.Instance.GetElement(position);
+            ////region.AddSamllCell(firstSmall);
+            //var regionCells = FloodFill(firstSmall);
+            //if (regionCells != null && regionCells.Count > 0)
+            //{
+
+            //    foreach (var cell in regionCells)
+            //    {
+            //        var oldRegion = GetRegionFromSmallCoord(cell.coord);
+            //        if (oldRegion != null)
+            //        {
+            //            oldRegion.RemoveSmallCell(cell);
+            //        }
+            //        region.AddSamllCell(cell);
+            //        cell.cellType =  SmallCellType.Floor;
+            //    }
+            //}
         }
 
         public Region GetRegionFromLargeCoord(Vector2Int coord)
@@ -195,13 +195,13 @@ namespace Johnny.SimDungeon
             return null;
         }
 
-        public HashSet<Element_SmallCell> FloodFill(Element_SmallCell start, int maxRange = 300)
+        public HashSet<Vector2Int> FloodFillSmallCoord(Vector2Int start, int maxRange = 300)
         {
-            var visited = new HashSet<Element_SmallCell>();
-            var queue = new Queue<Element_SmallCell>();
+            var visited = new HashSet<Vector2Int>();
+            var queue = new Queue<Vector2Int>();
             var mapSize = WorldManager.Instance.smallTilemapSize;
 
-            var origin = start.coord;
+            var origin = start;
             int halfRange = maxRange / 2;
 
             queue.Enqueue(start);
@@ -212,20 +212,20 @@ namespace Johnny.SimDungeon
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
-                var coord = current.coord;
+                var coord = current;
 
                 if (coord.x == 0 || coord.y == 0 || coord.x == mapSize.x - 1 || coord.y == mapSize.y - 1)
                 {
                     reachedBoundary = true;
                 }
 
-                var neighbors = ElementManager_SmallCell.Instance.GetCellNeighbors(current.coord);
+                var neighbors = ElementManager_SmallCell.Instance.GetCellNeighbors(current);
                 for (int i = 0; i < 4; i++)
                 {
                     var neighbor = neighbors[i];
 
-                    if (neighbor == null || visited.Contains(neighbor)) continue;
-                    if (neighbor.cellType == FlowTilemapSmallCellType.Wall) continue;
+                    if (neighbor == null || visited.Contains(neighbor.coord)) continue;
+                    if (neighbor.cellType != SmallCellType.Empty) continue;
 
                     var nCoord = neighbor.coord;
                     if (Mathf.Abs(nCoord.x - origin.x) > halfRange ||
@@ -236,24 +236,24 @@ namespace Johnny.SimDungeon
                     }
 
                     // 不跳过旧房间格子
-                    visited.Add(neighbor);
-                    queue.Enqueue(neighbor);
+                    visited.Add(neighbor.coord);
+                    queue.Enqueue(neighbor.coord);
                 }
             }
 
             // 到边界的区域依然返回空
-            if (reachedBoundary) return new HashSet<Element_SmallCell>();
+            if (reachedBoundary) return new HashSet<Vector2Int>();
 
             return visited;
         }
 
-        public HashSet<Element_LargeCell> FloodFill(Element_LargeCell start, int maxRange = 150)
+        public HashSet<Vector2Int> FloodFillLargeCoord(Vector2Int start, int maxRange = 150)
         {
-            var visited = new HashSet<Element_LargeCell>();
-            var queue = new Queue<Element_LargeCell>();
+            var visited = new HashSet<Vector2Int>();
+            var queue = new Queue<Vector2Int>();
             var mapSize = WorldManager.Instance.smallTilemapSize;
 
-            var origin = start.coord;
+            var origin = start;
             int halfRange = maxRange / 2;
 
             queue.Enqueue(start);
@@ -264,21 +264,21 @@ namespace Johnny.SimDungeon
             while (queue.Count > 0)
             {
                 var current = queue.Dequeue();
-                var coord = current.coord;
+                var coord = current;
 
                 if (coord.x == 0 || coord.y == 0 || coord.x == mapSize.x - 1 || coord.y == mapSize.y - 1)
                 {
                     reachedBoundary = true;
                 }
 
-                var neighbors = ElementManager_LargeCell.Instance.GetCellNeighbors(current.coord);
+                var neighbors = ElementManager_LargeCell.Instance.GetCellNeighbors(current);
                 for (int i = 0; i < 4; i++)
                 {
                     var neighbor = neighbors[i];
                     var dir = DirectionUtility.CardinalDirections[i];
 
-                    if (neighbor == null || visited.Contains(neighbor)) continue;
-                    if (DirectionUtility.HasEdgeBetween(current, neighbor, dir)) continue;
+                    if (neighbor == null || visited.Contains(neighbor.coord)) continue;
+                    if (DirectionUtility.HasEdgeBetween(current, neighbor.coord, dir)) continue;
 
                     var nCoord = neighbor.coord;
                     if (Mathf.Abs(nCoord.x - origin.x) > halfRange ||
@@ -289,35 +289,35 @@ namespace Johnny.SimDungeon
                     }
 
                     // 不跳过旧房间格子
-                    visited.Add(neighbor);
-                    queue.Enqueue(neighbor);
+                    visited.Add(neighbor.coord);
+                    queue.Enqueue(neighbor.coord);
                 }
             }
 
             // 到边界的区域依然返回空
-            if (reachedBoundary) return new HashSet<Element_LargeCell>();
+            if (reachedBoundary) return new HashSet<Vector2Int>();
 
             return visited;
         }
 
-        public void HandleWallsPlacedIncremental(HashSet<Element_LargeCell> allAdjacentCells)
+        public void HandleWallsPlacedIncremental(HashSet<Vector2Int> allAdjacentCells)
         {
             // 已访问的格子集合，避免重复计算
-            var visited = new HashSet<Element_LargeCell>();
+            var visited = new HashSet<Vector2Int>();
 
             foreach (var cell in allAdjacentCells)
             {
                 if (visited.Contains(cell)) continue;
 
                 // 对每个未访问的格子执行 FloodFill
-                var regionCells = FloodFill(cell, 150); // 或传入 maxRange
+                var regionCells = FloodFillLargeCoord(cell, 150); // 或传入 maxRange
                 if (regionCells.Count == 0) continue; // 遇到边界，忽略
 
                 // 标记这些格子已访问
                 foreach (var c in regionCells)
                     visited.Add(c);
 
-                var oldRegion = GetRegionFromLargeCoord(regionCells.First().coord);
+                var oldRegion = GetRegionFromLargeCoord(regionCells.First());
 
                 if (!regionCells.SetEquals(oldRegion.containedLargeCells))
                 {

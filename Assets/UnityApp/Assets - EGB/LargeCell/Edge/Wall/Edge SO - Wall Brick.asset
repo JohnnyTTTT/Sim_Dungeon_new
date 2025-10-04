@@ -26,7 +26,7 @@ MonoBehaviour:
   spawnedObjectLayer:
     serializedVersion: 2
     m_Bits: 256
-  setGridSystemAsParent: 0
+  setGridSystemAsParent: 1
   useObjectGridCustomAlphaMaskScale: 0
   objectGridCustomAlphaMaskScale: {x: 0, y: 0}
   customSurfaceLayerMask:
